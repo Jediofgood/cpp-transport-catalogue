@@ -28,7 +28,7 @@ void Test_String_Split_Lenght() {
 			t1.lenght_ = 19900;
 
 			std::string line1 = "  19900m    to    Rasskazovka     ";
-			std::vector<Length_upto> vect = small_part_processing::String_Split_Lenght(line1);
+			std::vector<Length_upto> vect = small_part_processing::StringSplitLenght(line1);
 
 			assert(vect[0] == t1);
 		}
@@ -41,7 +41,7 @@ void Test_String_Split_Lenght() {
 			t2.lenght_ = 100;
 
 			std::string line1 = "19900m to Rasskazovka, 100m to Marushkino Tovarnay";
-			std::vector<Length_upto> vect = small_part_processing::String_Split_Lenght(line1);
+			std::vector<Length_upto> vect = small_part_processing::StringSplitLenght(line1);
 
 			assert(vect[0] == t1);
 			assert(vect[1] == t2);
@@ -55,14 +55,14 @@ void Test_String_Split_Lenght() {
 			t2.lenght_ = 100.987;
 
 			std::string line1 = "199.23400m to Rasskazovka, 100.987m to Marushkino";
-			std::vector<Length_upto> vect = small_part_processing::String_Split_Lenght(line1);
+			std::vector<Length_upto> vect = small_part_processing::StringSplitLenght(line1);
 
 			assert(vect[0] == t1);
 			assert(vect[1] == t2);
 		}
 		{
 			std::string line1 = "      ";
-			std::vector<Length_upto> vect = small_part_processing::String_Split_Lenght(line1);
+			std::vector<Length_upto> vect = small_part_processing::StringSplitLenght(line1);
 
 			assert(vect.empty());
 		}
@@ -72,11 +72,11 @@ void Test_String_Split_Lenght() {
 
 void Test_Request_type(){
 	using namespace input_readed;
-	assert(small_part_processing::Request_type("Stop") == RequestType::Stop);
-	assert(small_part_processing::Request_type("Bus") == RequestType::Bus);
+	assert(small_part_processing::DefineRequestType("Stop") == RequestType::Stop);
+	assert(small_part_processing::DefineRequestType("Bus") == RequestType::Bus);
 	try
 	{
-		small_part_processing::Request_type("Plane");
+		small_part_processing::DefineRequestType("Plane");
 		assert(false);
 	}
 	catch (const std::invalid_argument&)
@@ -123,9 +123,9 @@ void Test1() {
 		"Stop Biryulyovo Zapadnoye: buses 256 828\n"
 	};
 
-	transport_catalogue::Trasport_catalogue catal = input_readed::Start_database(inputBD);
-	catal.Calculate_Lenght();
-	stat_reader::db_request(input_request, output, catal);
+	transport_catalogue::TrasportCatalogue catal = input_readed::StartDatabase(inputBD);
+	//catal.CalculateLenghtForAll();
+	stat_reader::StartRequesting(input_request, output, catal);
 
 	assert(output.str() == correct_output.str());
 }

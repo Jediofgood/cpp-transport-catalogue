@@ -5,9 +5,48 @@
 #include <cassert>
 #include <iomanip>
 
+
 namespace stat_reader{
 
-RequestType Request_type(std::string_view str) {
+	std::ostream& operator<<(std::ostream& os, const transport_catalogue::print_info::PrintBus& to_print) {
+		using namespace std::string_literals;
+		if (to_print.in_catalogue){
+			os << std::setprecision(6) <<
+			"Bus "s << to_print.name << ": " <<
+			to_print.stops << " stops on route, " <<
+			to_print.unique_stops << " unique stops, " <<
+			to_print.length << " route length, "
+			<< to_print.curvature << " curvature"
+			<< std::endl;
+		}
+		else {
+			os << "Bus "s << to_print.name << ": not found"s << std::endl;
+		}
+		return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const transport_catalogue::print_info::PrintStop& to_print) {
+	using namespace std::string_literals;
+	if (to_print.in_catalogue) {
+		if (to_print.ptr_set->empty()) {
+			os << "Stop " << to_print.name << ": no buses" << std::endl;
+		}
+		else {
+			os << "Stop " << to_print.name << ": buses";
+			for (std::string_view buses : *to_print.ptr_set) {
+				os << " " << buses;
+			}
+			os << std::endl;
+		}
+	}
+	else {
+		os << "Stop " << to_print.name << ": not found" << std::endl;
+	}
+	return os;
+}
+
+
+RequestType DefineRequestType(std::string_view str) {
 	using namespace std::string_view_literals;
 	if(str == "Bus"sv)
 	{
@@ -19,54 +58,27 @@ RequestType Request_type(std::string_view str) {
 	throw std::invalid_argument("");
 }
 
-void Request_Bus(std::string_view line, std::ostream& output, const transport_catalogue::Trasport_catalogue& trc) {
+void RequestBus(std::string_view line, std::ostream& output, const transport_catalogue::TrasportCatalogue& trc) {
 	using namespace std::string_literals;
 	line.remove_prefix(line.find_first_not_of(' '));
 	line.remove_suffix(line.size() - line.find_last_not_of(" ") - 1);
 
-	const std::pair < transport_catalogue::Bus*, bool>& info_bus = trc.BusInfo(line);
-	
-	if (info_bus.second) {
-		const transport_catalogue::Bus& bus = *info_bus.first;
-		output << std::setprecision(6) <<
-			"Bus "s << line << ": " <<
-			bus.StopsNumber() << " stops on route, " <<
-			bus.UniqieStops() << " unique stops, " <<
-			bus.True_Route_Length() << " route length, " 
-			<< bus.True_Route_Length() / bus.Straight_Length() << " curvature"
-			<< std::endl;
-	}
-	else {
-		output << "Bus "s << line << ": not found"s << std::endl;
-	}
+	transport_catalogue::print_info::PrintBus to_print = trc.GetPrintBus(line);
+
+	output << to_print;
 }
 
-void Request_Stop(std::string_view line, std::ostream& output, const transport_catalogue::Trasport_catalogue& trc) {
+void RequestStop(std::string_view line, std::ostream& output, const transport_catalogue::TrasportCatalogue& trc) {
 	line.remove_prefix(line.find_first_not_of(' '));
 	line.remove_suffix(line.size() - line.find_last_not_of(" ") - 1);
 
-	const std::pair<transport_catalogue::Stops*, bool> info_stop = trc.StopInfo(line);
+	transport_catalogue::print_info::PrintStop to_print = trc.GetPrintStop(line);
 
-	if (info_stop.second) {
-		const transport_catalogue::Stops& stop = *info_stop.first;
-		if (stop.NoBus()) {
-			output << "Stop " << line << ": no buses" << std::endl;
-		}
-		else {
-			output << "Stop " << line << ": buses";
-			for (std::string_view buses : stop.AllBus()) {
-				output << " " << buses;
-			}
-			output << std::endl;
-		}
-	}
-	else {
-		output << "Stop " << line << ": not found" << std::endl;
-	}
+	output << to_print;
 }
 
 //Начала обращений к БД. 
-void db_request(std::istream& input, std::ostream& output, const transport_catalogue::Trasport_catalogue& trc){
+void StartRequesting(std::istream& input, std::ostream& output, const transport_catalogue::TrasportCatalogue& trc){
 	std::string line;
 	getline(input, line);
 	int req_num = std::stoi(line);
@@ -76,14 +88,14 @@ void db_request(std::istream& input, std::ostream& output, const transport_catal
 		std::string line;
 		getline(input, line);
 		size_t pos = line.find(' ');
-		RequestType request = Request_type(line.substr(0, pos));
+		RequestType request = DefineRequestType(line.substr(0, pos));
 		switch (request)
 		{
 		case stat_reader::RequestType::Bus:
-			Request_Bus(line.substr(pos+1), output, trc);
+			RequestBus(line.substr(pos+1), output, trc);
 			break;
 		case stat_reader::RequestType::Stop:
-			Request_Stop(line.substr(pos + 1), output, trc);
+			RequestStop(line.substr(pos + 1), output, trc);
 			break;
 		default:
 			break;

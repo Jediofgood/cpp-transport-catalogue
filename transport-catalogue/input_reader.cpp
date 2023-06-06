@@ -9,10 +9,10 @@
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
-namespace input_readed{
+namespace input_readed{ 
 
 namespace small_part_processing{
- std::vector<Length_upto> String_Split_Lenght(std::string_view strv) {
+ std::vector<Length_upto> StringSplitLenght(std::string_view strv) {
 	strv.remove_prefix(std::min(strv.find_first_not_of(", "), strv.size()));
 	std::vector<Length_upto> result;
 	bool flag = true;
@@ -43,7 +43,7 @@ namespace small_part_processing{
 }
 
  //Получить координты из строки +
- geo::Coordinates Coordinate(std::string line) {
+ geo::Coordinates ReadCoordinate(std::string line) {
 	 geo::Coordinates cord;
 	 size_t com_pos = line.find(',');
 	 cord.lat = std::stod(line.substr(0, com_pos));
@@ -52,7 +52,7 @@ namespace small_part_processing{
  }
 
  //Обработка типа запроса+
- RequestType Request_type(std::string_view request) {
+ RequestType DefineRequestType(std::string_view request) {
 	 if (request == "Stop"sv) {
 		 return RequestType::Stop;
 	 }
@@ -90,7 +90,7 @@ namespace small_part_processing{
 
 namespace string_line_processing {
 //Сырая информация для БД
-std::vector<std::string> Request_lines(std::istream& input) {
+std::vector<std::string> ReadRequestLines(std::istream& input) {
 
 	std::string line_numer;
 	getline(input, line_numer);
@@ -109,35 +109,30 @@ std::vector<std::string> Request_lines(std::istream& input) {
 }
 
 //Обработка строки - запроса с остановокой+
-transport_catalogue::Stops Stop_processing(std::string& line) {
+transport_catalogue::Stops StopProcessing(std::string& line) {
 	size_t pos = line.find(':');
 	std::string name = std::move(line.substr(0, pos));
 	name.erase(name.find_last_not_of(" ") + 1);
 
 	size_t pos_after_coord = line.find(',', line.find(',') + 1);
 
-	geo::Coordinates cord = small_part_processing::Coordinate(std::move(line.substr(pos + 1, pos_after_coord)));
+	geo::Coordinates cord = small_part_processing::ReadCoordinate(std::move(line.substr(pos + 1, pos_after_coord)));
 	transport_catalogue::Stops stop(name, cord);
 
 	line.erase(0, pos_after_coord);
 	return stop;
 }
 
-}//string_line_processing
-
-//Запуск и заполнение БД - результат: готовая БД
-transport_catalogue::Trasport_catalogue Start_database(std::istream& input){
-
+//получаем raw_data через std::move 
+RawDataByType SplitRequest(std::vector<std::string> raw_data) { //получаем raw_data через std::move
 	std::vector<std::string> raw_stops;
 	std::vector<std::string> raw_buses;
-	//{
-	std::vector<std::string> raw_data = string_line_processing::Request_lines(input);
 
 	raw_stops.reserve(raw_data.size());
 	raw_buses.reserve(raw_data.size());
 	for (std::string& line : raw_data) {
 		size_t pos = line.find(' ');
-		RequestType type = small_part_processing::Request_type(line.substr(0, pos));
+		RequestType type = small_part_processing::DefineRequestType(line.substr(0, pos));
 		switch (type)
 		{
 		case RequestType::Stop:
@@ -150,91 +145,97 @@ transport_catalogue::Trasport_catalogue Start_database(std::istream& input){
 			break;
 		}
 	}
-	raw_data.clear();
-	//}
-	
-	//Сначала остановки.
+
+	RawDataByType result(std::move(raw_stops), std::move(raw_buses));
+
+	return result;
+}
+
+//Обрабатываем все остановки - возвращаем в готовом виде.
+StopsCatalogue MakeStopsCatalogue(std::vector<std::string> raw_stops) {//получаем raw_stops через std::move
 	std::unordered_map < std::string_view, transport_catalogue::Stops*> stops_catalogue;
 	std::deque<transport_catalogue::Stops> stop_storage;
-
 	std::deque<std::string> length_stops;
-	
+	std::unordered_map<std::string_view, std::set<std::string_view, std::less<>>> buses_on_stop;
+
 	for (std::string& stop_line : raw_stops) {
-		transport_catalogue::Stops stop = std::move(string_line_processing::Stop_processing(stop_line));
+		transport_catalogue::Stops stop = std::move(string_line_processing::StopProcessing(stop_line));
 
 		length_stops.push_front(std::move(stop_line));//вернёмся позже. по оставшейся части не проходили.
 
 		stop_storage.push_front(std::move(stop));
-		stops_catalogue.emplace(stop_storage[0].Name(), &stop_storage[0]);	
+		stops_catalogue.emplace(stop_storage[0].GetName(), &stop_storage[0]);
+		buses_on_stop[stop_storage[0].GetName()];
 	}
-	//Все остановки в БД => заполнить расстояния.
 
 	std::unordered_map<
-		std::pair<transport_catalogue::Stops*, transport_catalogue::Stops*>, 
-		size_t, 
-		transport_catalogue::Hashing> 
+		std::pair<transport_catalogue::Stops*, transport_catalogue::Stops*>,
+		size_t,
+		transport_catalogue::Hashing>
 		true_lenght_storage;
 
 	for (size_t i = 0; i < length_stops.size(); i++) {
 		using namespace transport_catalogue;
 
 		std::vector<Length_upto> lengs_stops = std::move(
-			small_part_processing::String_Split_Lenght(length_stops[i]));
+			small_part_processing::StringSplitLenght(length_stops[i]));
 
 		for (const Length_upto& elem : lengs_stops) {
 			std::pair<Stops*, Stops*> stop_pair = std::make_pair(&stop_storage[i], stops_catalogue[elem.name_]);
 			true_lenght_storage.emplace(stop_pair, elem.lenght_);
 		}
-		
+
 	}
 
-	//Остановки всё.
-	
-	//Теперь автобусы
-	std::unordered_map<std::string_view, transport_catalogue::Bus*> bus_catalogue;
-	std::deque<transport_catalogue::Bus> bus_stotage;
+
+
+	return StopsCatalogue(std::move(stop_storage), std::move(stops_catalogue), std::move(true_lenght_storage), std::move(buses_on_stop));
+}
+
+void PushBusToCatalogue(std::vector<std::string> raw_buses, 
+	//std::unordered_map<std::string_view, transport_catalogue::Stops*> stops_catalogue) {
+	transport_catalogue::TrasportCatalogue* trc){
 
 	for (std::string& bus_line : raw_buses) {
 
 		size_t pos = bus_line.find(':');
 		std::string bus_name = bus_line.substr(0, pos); //имя автобуса.
 		bus_name.erase(bus_name.find_last_not_of(' ') + 1);
-		bus_line.erase(0, bus_name.size()+2);
-
-		transport_catalogue::Bus bus(std::move(bus_name));
-		//разбиваем на остановки, и узнаём тип маршрута.
-
-		bus_stotage.push_front(std::move(bus));
-
+		bus_line.erase(0, bus_name.size() + 2);
 		bool ring = false;
 		{
-			size_t pos=bus_line.find_first_of(">-");
+			size_t pos = bus_line.find_first_of(">-");
 			if (bus_line[pos] == '>') {
 				ring = true;
 			}
 		}
 
 		std::vector<std::string_view> stops = small_part_processing::SplitIntoWords(bus_line);
-
-		for (std::string_view stop : stops) {
-
-			bus_stotage[0].AddStop(stop, stops_catalogue.at(stop));
-			stops_catalogue[stop]->AddBus(bus_stotage[0].Name());
-		}
-		if (!ring) {
-			for (auto it = stops.rbegin() + 1; it != stops.rend(); ++it) {
-				bus_stotage[0].AddStop(*it, stops_catalogue.at(*it));
-			}
-		}
-		bus_catalogue.insert({ bus_stotage[0].Name(), &bus_stotage[0] });
+		trc->AddBus(std::move(bus_name), stops, ring);	
 	}
-	//Автобусы всё
-	transport_catalogue::Trasport_catalogue	return_catalogue(
-		std::move(stop_storage), std::move(bus_stotage),
-		std::move(stops_catalogue), std::move(bus_catalogue),
-		std::move(true_lenght_storage));
-	return_catalogue.Calculate_Lenght();
-	return return_catalogue;
+}
+		
+//}
+
+}//string_line_processing
+
+//Запуск и заполнение БД - результат: готовая БД
+transport_catalogue::TrasportCatalogue StartDatabase(std::istream& input) {
+	std::vector<std::string> raw_data = std::move(string_line_processing::ReadRequestLines(input));
+
+	string_line_processing::RawDataByType data( std::move(string_line_processing::SplitRequest(std::move(raw_data))) );
+
+	string_line_processing::StopsCatalogue all_stops = std::move(string_line_processing::MakeStopsCatalogue(data.raw_stops_));
+
+	transport_catalogue::TrasportCatalogue return_catalogue1(
+		std::move(all_stops.stop_storage_), 
+		std::move(all_stops.stops_catalogue_), 
+		std::move(all_stops.true_lenght_),
+		std::move(all_stops.buses_on_stop_));
+
+	string_line_processing::PushBusToCatalogue(std::move(data.raw_buses_), &return_catalogue1);
+
+	return return_catalogue1;
 }
 
 }//input_readed

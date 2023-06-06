@@ -15,6 +15,26 @@
 
 namespace transport_catalogue{
 
+namespace print_info{
+
+struct PrintStop{
+	bool in_catalogue = false;
+	std::string_view name = "";
+	const std::set<std::string_view, std::less<>>* ptr_set;
+};
+
+struct PrintBus {
+	bool in_catalogue = false;
+	std::string_view name = "";
+	size_t stops = 0;
+	size_t unique_stops = 0;
+	double length = 0;
+	double curvature = 0;
+};
+
+
+}//print_info
+
 //Класс остановок.
 class Stops {
 public:
@@ -24,14 +44,14 @@ public:
 		:stop_name_(std::move(name)), coordinates_(coordinates)
 	{}
 
-	std::string_view Name();
-	geo::Coordinates Coordinate();
+	std::string_view GetName();
+	geo::Coordinates GetCoordinate();
 	
 	void AddBus(std::string_view bus);
 
-	const std::set<std::string_view, std::less<>>& AllBus() const;
+	const std::set<std::string_view, std::less<>>& GetAllBusSet() const;
 
-	bool NoBus() const;
+	bool IsNoBus() const;
 
 private:
 	std::string stop_name_;
@@ -52,20 +72,20 @@ public:
 		:bus_name_(bus) 
 	{}
 	
-	std::string_view Name() const;
-	size_t UniqieStops() const;
-	size_t StopsNumber() const; 
+	std::string_view GetName() const;
+	size_t GetUniqieStops() const;
+	size_t GetStopsNumber() const; 
 
 	void AddStop(std::string_view stop, Stops* stop_ptr);
 
-	double Straight_Length() const;
-	double True_Route_Length() const;
+	double GetStraightLength() const;
+	double GetTrueRouteLength() const;
 
-	const std::unordered_set<std::string_view>& Stops_On_Route() const;
+	const std::unordered_set<std::string_view>& GetStopsOnRoute() const;
 
-	const std::vector<Stops*>& The_Route() const;
+	const std::vector<Stops*>& GetRoute() const;
 
-	void Add_True_Lenght(double leng);
+	void AddTrueLenght(double leng);
 
 private:
 	std::string bus_name_;
@@ -85,43 +105,44 @@ private:
 	const size_t simple_num_ = 23;
 };
 
-class Trasport_catalogue {
+class TrasportCatalogue {
 public:
-	//Запуск БД.
-	explicit Trasport_catalogue(
+	//Загружаем все остановки, т.к. остановки зависят от остановок, и автобусы зависят от остановок.
+	//Воизбежания конфликтов, проблем проще обработать сразу все остановки и добавить.
+	explicit TrasportCatalogue(
 		std::deque<transport_catalogue::Stops> stop_storage,
-		std::deque<Bus> bus_storage,
 		std::unordered_map<std::string_view, Stops*> stops_map,
-		std::unordered_map<std::string_view, Bus*> route_catalogue,
-		std::unordered_map<std::pair<Stops*, Stops*>, size_t, Hashing> true_lenght)
-		:
-		stop_storage_(std::move(stop_storage)), bus_storage_(std::move(bus_storage)),
-		stops_catalogue_(std::move(stops_map)), route_catalogue_(std::move(route_catalogue)),
-		true_lenght_(std::move(true_lenght))
-	{}
+		std::unordered_map<std::pair<Stops*, Stops*>, size_t, Hashing> true_lenght,
+		std::unordered_map<std::string_view, std::set<std::string_view, std::less<>>> buses_on_stop
+		)
+		: stop_storage_(std::move(stop_storage)), stops_catalogue_(std::move(stops_map)), 
+		  true_lenght_(std::move(true_lenght)), buses_on_stop_(buses_on_stop)
+	{
+	}
 
-	//добавление остановки в базу в сыром видел,
-	void AddStop(std::string stop_line);
-
-	//добавление остановки в базу в готовом виде.
-	void AddStop(Stops stop);
-
-	//добавление маршрута в базу,
-	void AddBus(std::string stop_bus);
+	void AddBus(std::string bus, const std::vector<std::string_view>& stops, bool ring);
 
 	//Информация про маршрут
-	const std::pair<Bus*, bool> BusInfo(std::string_view bus) const;
+	const std::pair<Bus*, bool> GetBusInfo(std::string_view bus) const;
 
-	const std::pair<Stops*, bool> StopInfo(std::string_view stop) const;
+	const std::pair<Stops*, bool> GetStopInfo(std::string_view stop) const;
 
-	void Calculate_Lenght();
+	void CalculateLenght(Bus& bus);
+
+	void CalculateLenghtForAll();
+
+	const print_info::PrintStop GetPrintStop(std::string_view stop) const;
+
+	const print_info::PrintBus GetPrintBus(std::string_view bus) const;
 
 private:
-	std::deque<transport_catalogue::Stops> stop_storage_;
-	std::deque<Bus> bus_storage_;
+	std::deque<Stops> stop_storage_;
 	std::unordered_map<std::string_view, Stops*> stops_catalogue_;
-	std::unordered_map<std::string_view, Bus*> route_catalogue_;
 	std::unordered_map<std::pair<Stops*, Stops*>, size_t, Hashing> true_lenght_;
+	std::unordered_map<std::string_view, std::set<std::string_view, std::less<>>> buses_on_stop_;
+
+	std::deque<Bus> bus_storage_;
+	std::unordered_map<std::string_view, Bus*> route_catalogue_;
 };
 
 

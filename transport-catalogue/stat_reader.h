@@ -14,16 +14,20 @@ enum class RequestType {
     Stop,
 };
 
+std::ostream& operator<<(std::ostream& os, const transport_catalogue::print_info::PrintBus& to_print);
+
+std::ostream& operator<<(std::ostream& os, const transport_catalogue::print_info::PrintStop& to_print);
+
 //Начала обращений к БД. 
-void db_request(std::istream& input, std::ostream& output, const transport_catalogue::Trasport_catalogue& trc);
+void StartRequesting(std::istream& input, std::ostream& output, const transport_catalogue::TrasportCatalogue& trc);
 
 //Запрос - Автобус
-void Request_Bus(std::string_view line, std::ostream& output, const transport_catalogue::Trasport_catalogue& trc);
+void RequestBus(std::string_view line, std::ostream& output, const transport_catalogue::TrasportCatalogue& trc);
 
 //определям запрос
-RequestType Request_type(std::string_view str);
+RequestType DefineRequestType(std::string_view str);
 
 //Запрос - Остановка.
-void Request_Stop(std::string_view line, std::ostream& output, const transport_catalogue::Trasport_catalogue& trc);
+void RequestStop(std::string_view line, std::ostream& output, const transport_catalogue::TrasportCatalogue& trc);
 
 }//stat_reader
