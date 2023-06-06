@@ -122,11 +122,6 @@ public:
 
 	void AddBus(std::string bus, const std::vector<std::string_view>& stops, bool ring);
 
-	//Информация про маршрут
-	const std::pair<Bus*, bool> GetBusInfo(std::string_view bus) const;
-
-	const std::pair<Stops*, bool> GetStopInfo(std::string_view stop) const;
-
 	void CalculateLenght(Bus& bus);
 
 	void CalculateLenghtForAll();

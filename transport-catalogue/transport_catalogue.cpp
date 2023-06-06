@@ -91,25 +91,6 @@ void TrasportCatalogue::AddBus(std::string bus_name, const std::vector<std::stri
 	CalculateLenght(bus_storage_[0]);
 }
 
-//Информация про маршрут
-const std::pair<Bus*, bool> TrasportCatalogue::GetBusInfo(std::string_view bus) const {
-	if (route_catalogue_.count(bus) == 0) {
-		return { nullptr, false };
-	}
-	else {
-		return{ route_catalogue_.at(bus), true };
-	}
-}
-
-const std::pair<Stops*, bool> TrasportCatalogue::GetStopInfo(std::string_view stop) const {
-	if (stops_catalogue_.count(stop) == 0) {
-		return { nullptr, false };
-	}
-	else {
-		return{ stops_catalogue_.at(stop), true};
-	}
-}
-
 void TrasportCatalogue::CalculateLenght(Bus& bus) {
 	const std::vector<Stops*>& stops = bus.GetRoute();
 	bool isfirst = true;
