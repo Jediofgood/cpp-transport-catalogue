@@ -11,11 +11,11 @@
 
 //отдельные функции//
 
-bool operator==(const input_readed::Length_upto& lhs, const input_readed::Length_upto& rhs) {
+bool operator==(const transport_catalogue::DistanceTo& lhs, const transport_catalogue::DistanceTo& rhs) {
 	return (lhs.name_ == rhs.name_) and (lhs.lenght_ == rhs.lenght_);
 }
 
-bool operator!=(const input_readed::Length_upto& lhs, const input_readed::Length_upto& rhs) {
+bool operator!=(const transport_catalogue::DistanceTo& lhs, const transport_catalogue::DistanceTo& rhs) {
 	return (lhs.name_ != rhs.name_) or (lhs.lenght_ != rhs.lenght_);
 }
 
@@ -23,17 +23,17 @@ void Test_String_Split_Lenght() {
 	using namespace input_readed;
 	{
 		{
-			Length_upto t1, t2;
+			transport_catalogue::DistanceTo t1, t2;
 			t1.name_ = "Rasskazovka";
 			t1.lenght_ = 19900;
 
 			std::string line1 = "  19900m    to    Rasskazovka     ";
-			std::vector<Length_upto> vect = small_part_processing::StringSplitLenght(line1);
+			std::vector<transport_catalogue::DistanceTo> vect = small_part_processing::StringSplitLenght(line1);
 
 			assert(vect[0] == t1);
 		}
 		{
-			Length_upto t1, t2;
+			transport_catalogue::DistanceTo t1, t2;
 			t1.name_ = "Rasskazovka";
 			t1.lenght_ = 19900;
 
@@ -41,13 +41,13 @@ void Test_String_Split_Lenght() {
 			t2.lenght_ = 100;
 
 			std::string line1 = "19900m to Rasskazovka, 100m to Marushkino Tovarnay";
-			std::vector<Length_upto> vect = small_part_processing::StringSplitLenght(line1);
+			std::vector<transport_catalogue::DistanceTo> vect = small_part_processing::StringSplitLenght(line1);
 
 			assert(vect[0] == t1);
 			assert(vect[1] == t2);
 		}
 		{
-			Length_upto t1, t2;
+			transport_catalogue::DistanceTo t1, t2;
 			t1.name_ = "Rasskazovka";
 			t1.lenght_ = 199.23400;
 
@@ -55,14 +55,14 @@ void Test_String_Split_Lenght() {
 			t2.lenght_ = 100.987;
 
 			std::string line1 = "199.23400m to Rasskazovka, 100.987m to Marushkino";
-			std::vector<Length_upto> vect = small_part_processing::StringSplitLenght(line1);
+			std::vector<transport_catalogue::DistanceTo> vect = small_part_processing::StringSplitLenght(line1);
 
 			assert(vect[0] == t1);
 			assert(vect[1] == t2);
 		}
 		{
 			std::string line1 = "      ";
-			std::vector<Length_upto> vect = small_part_processing::StringSplitLenght(line1);
+			std::vector<transport_catalogue::DistanceTo> vect = small_part_processing::StringSplitLenght(line1);
 
 			assert(vect.empty());
 		}
@@ -125,6 +125,7 @@ void Test1() {
 
 	transport_catalogue::TrasportCatalogue catal = input_readed::StartDatabase(inputBD);
 	//catal.CalculateLenghtForAll();
+	//stat_reader::StartRequesting(input_request, std::cout, catal);
 	stat_reader::StartRequesting(input_request, output, catal);
 
 	assert(output.str() == correct_output.str());

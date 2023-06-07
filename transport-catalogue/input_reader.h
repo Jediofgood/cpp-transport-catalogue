@@ -17,16 +17,10 @@ enum class RequestType {
     Bus,
 };
 
-class Length_upto {
-public:
-	std::string_view name_;
-	double lenght_;
-};
-
 namespace small_part_processing{
 
 //разбиваем для true длины.
-std::vector<Length_upto> StringSplitLenght(std::string_view strv);
+std::vector<transport_catalogue::DistanceTo> StringSplitLenght(std::string_view strv);
 
 //Получить координты из строки
 geo::Coordinates ReadCoordinate(std::string line);
@@ -97,7 +91,7 @@ struct StopsCatalogue
 };
 
 //Обрабатываем все остановки - возвращаем в готовом виде.
-StopsCatalogue MakeStopsCatalogue(std::vector<std::string> raw_stops);//получаем raw_stops через std::move
+void MakeStopsCatalogue(std::vector<std::string> raw_stops, transport_catalogue::TrasportCatalogue* trc);//получаем raw_stops через std::move
 
 void PushBusToCatalogue(std::vector<std::string> raw_buses, transport_catalogue::TrasportCatalogue* trc);//получаем raw_stops через std::move
 

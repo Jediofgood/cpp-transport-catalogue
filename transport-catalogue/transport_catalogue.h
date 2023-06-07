@@ -15,23 +15,44 @@
 
 namespace transport_catalogue{
 
+class DistanceTo {
+public:
+	std::string_view name_;
+	double lenght_;
+};
+
 namespace print_info{
+
+struct InfoStop{
+	std::string_view name{};
+};
+
+struct InfoBus
+{
+	std::string_view name;
+	size_t stops = 0;
+	size_t unique_stops = 0;
+	double true_length = 0;
+	double straight_length = 0;
+	double curvature = 0;
+};
 
 struct PrintStop{
 	bool in_catalogue = false;
-	std::string_view name = "";
+	InfoStop info;
 	const std::set<std::string_view, std::less<>>* ptr_set;
 };
 
 struct PrintBus {
 	bool in_catalogue = false;
 	std::string_view name = "";
+	InfoBus info;
+
 	size_t stops = 0;
 	size_t unique_stops = 0;
 	double length = 0;
 	double curvature = 0;
 };
-
 
 }//print_info
 
@@ -42,44 +63,51 @@ public:
 
 	explicit Stops(std::string name, geo::Coordinates coordinates)
 		:stop_name_(std::move(name)), coordinates_(coordinates)
-	{}
-
+	{
+		//info_.name = stop_name_;
+	}
+	//не используется для печати. нужен для внутренних функций.
 	std::string_view GetName();
+	//не используется для печати. нужен для внутренних функций.
 	geo::Coordinates GetCoordinate();
-	
-	void AddBus(std::string_view bus);
 
-	const std::set<std::string_view, std::less<>>& GetAllBusSet() const;
-
-	bool IsNoBus() const;
+	print_info::InfoStop GetInfo();
 
 private:
 	std::string stop_name_;
 	geo::Coordinates coordinates_;
+	print_info::InfoStop info_;
+};
 
-	std::set<std::string_view, std::less<>> buses_on_stop_;
+struct RouteInfo {
+	bool ring_;
+	std::vector<Stops*> the_route_;
+	std::unordered_set<std::string_view> unique_stops_set_;
 };
 
 //Класс маршрутов.
 class Bus {
 	//friend Trasport_catalogue;
 public:
-
 	explicit Bus()
 	{}
 
-	explicit Bus(std::string bus)
-		:bus_name_(bus) 
-	{}
+	explicit Bus(std::string bus, bool ring)
+		:bus_name_(std::move(bus))  //А будет ли копирование таким образом происходить?
+	{
+		route_.ring_ = ring;
+	}
+
+	//explicit Bus(const std::string& bus, bool ring)
+	//	:bus_name_(bus)  //
+	//{
+	//	route_.ring_ = ring;
+	//}
 	
+	//не используется для печати. нужен для внутренних функций.
 	std::string_view GetName() const;
-	size_t GetUniqieStops() const;
-	size_t GetStopsNumber() const; 
 
 	void AddStop(std::string_view stop, Stops* stop_ptr);
-
-	double GetStraightLength() const;
-	double GetTrueRouteLength() const;
 
 	const std::unordered_set<std::string_view>& GetStopsOnRoute() const;
 
@@ -87,14 +115,20 @@ public:
 
 	void AddTrueLenght(double leng);
 
+	void FillInfo();
+
+	print_info::InfoBus GetBus() const;
+
 private:
 	std::string bus_name_;
-	size_t unique_stops_number_ = 0;
-	long double lenght_ = 0;
-	long double true_lenght_ = 0;
 
-	std::vector<Stops*> the_route_;
-	std::unordered_set<std::string_view> unique_stops_;
+	RouteInfo route_;
+	
+	//bool ring_;
+	//std::vector<Stops*> the_route_;
+	//std::unordered_set<std::string_view> unique_stops_;
+
+	print_info::InfoBus info_;
 };
 
 struct Hashing {
@@ -119,6 +153,13 @@ public:
 		  true_lenght_(std::move(true_lenght)), buses_on_stop_(buses_on_stop)
 	{
 	}
+
+	explicit TrasportCatalogue()
+	{}
+
+	void AddStop(Stops stop);
+
+	void AddStopsTrueLenght(std::deque<std::vector<DistanceTo>> length_stops);
 
 	void AddBus(std::string bus, const std::vector<std::string_view>& stops, bool ring);
 

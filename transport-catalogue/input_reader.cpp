@@ -12,16 +12,16 @@ using namespace std::string_view_literals;
 namespace input_readed{ 
 
 namespace small_part_processing{
- std::vector<Length_upto> StringSplitLenght(std::string_view strv) {
+ std::vector<transport_catalogue::DistanceTo> StringSplitLenght(std::string_view strv) {
 	strv.remove_prefix(std::min(strv.find_first_not_of(", "), strv.size()));
-	std::vector<Length_upto> result;
+	std::vector<transport_catalogue::DistanceTo> result;
 	bool flag = true;
 	while (!strv.empty() and flag) {
 		size_t metr_pos = strv.find("m ");
 		size_t after_to = strv.find("to ", metr_pos) + 3;
 		size_t comma_or_end = strv.find(',', after_to);
 
-		Length_upto elem;
+		transport_catalogue::DistanceTo elem;
 
 
 		elem.lenght_ = std::stod(static_cast<std::string>(strv.substr(0, metr_pos)));
@@ -151,49 +151,26 @@ RawDataByType SplitRequest(std::vector<std::string> raw_data) { //получаем raw_d
 	return result;
 }
 
-//ќбрабатываем все остановки - возвращаем в готовом виде.
-StopsCatalogue MakeStopsCatalogue(std::vector<std::string> raw_stops) {//получаем raw_stops через std::move
+//ƒобавл€ем остановки.
+void MakeStopsCatalogue(std::vector<std::string> raw_stops, transport_catalogue::TrasportCatalogue* trc) {//получаем raw_stops через std::move
 	std::unordered_map < std::string_view, transport_catalogue::Stops*> stops_catalogue;
 	std::deque<transport_catalogue::Stops> stop_storage;
 	std::deque<std::string> length_stops;
 	std::unordered_map<std::string_view, std::set<std::string_view, std::less<>>> buses_on_stop;
 
+	std::deque<std::vector<transport_catalogue::DistanceTo>> deque_lenght;
+
 	for (std::string& stop_line : raw_stops) {
 		transport_catalogue::Stops stop = std::move(string_line_processing::StopProcessing(stop_line));
 
-		length_stops.push_front(std::move(stop_line));//вернЄмс€ позже. по оставшейс€ части не проходили.
+		deque_lenght.push_front(std::move(small_part_processing::StringSplitLenght(stop_line)));
 
-		stop_storage.push_front(std::move(stop));
-		stops_catalogue.emplace(stop_storage[0].GetName(), &stop_storage[0]);
-		buses_on_stop[stop_storage[0].GetName()];
+		trc->AddStop(stop);
 	}
-
-	std::unordered_map<
-		std::pair<transport_catalogue::Stops*, transport_catalogue::Stops*>,
-		size_t,
-		transport_catalogue::Hashing>
-		true_lenght_storage;
-
-	for (size_t i = 0; i < length_stops.size(); i++) {
-		using namespace transport_catalogue;
-
-		std::vector<Length_upto> lengs_stops = std::move(
-			small_part_processing::StringSplitLenght(length_stops[i]));
-
-		for (const Length_upto& elem : lengs_stops) {
-			std::pair<Stops*, Stops*> stop_pair = std::make_pair(&stop_storage[i], stops_catalogue[elem.name_]);
-			true_lenght_storage.emplace(stop_pair, elem.lenght_);
-		}
-
-	}
-
-
-
-	return StopsCatalogue(std::move(stop_storage), std::move(stops_catalogue), std::move(true_lenght_storage), std::move(buses_on_stop));
+	trc->AddStopsTrueLenght(deque_lenght);
 }
 
 void PushBusToCatalogue(std::vector<std::string> raw_buses, 
-	//std::unordered_map<std::string_view, transport_catalogue::Stops*> stops_catalogue) {
 	transport_catalogue::TrasportCatalogue* trc){
 
 	for (std::string& bus_line : raw_buses) {
@@ -225,17 +202,13 @@ transport_catalogue::TrasportCatalogue StartDatabase(std::istream& input) {
 
 	string_line_processing::RawDataByType data( std::move(string_line_processing::SplitRequest(std::move(raw_data))) );
 
-	string_line_processing::StopsCatalogue all_stops = std::move(string_line_processing::MakeStopsCatalogue(data.raw_stops_));
+	transport_catalogue::TrasportCatalogue return_catalogue;
 
-	transport_catalogue::TrasportCatalogue return_catalogue1(
-		std::move(all_stops.stop_storage_), 
-		std::move(all_stops.stops_catalogue_), 
-		std::move(all_stops.true_lenght_),
-		std::move(all_stops.buses_on_stop_));
+	string_line_processing::MakeStopsCatalogue(std::move(data.raw_stops_), &return_catalogue);
 
-	string_line_processing::PushBusToCatalogue(std::move(data.raw_buses_), &return_catalogue1);
+	string_line_processing::PushBusToCatalogue(std::move(data.raw_buses_), &return_catalogue);
 
-	return return_catalogue1;
+	return return_catalogue;
 }
 
 }//input_readed
