@@ -135,8 +135,6 @@ public:
 
 	Stops* AddStop(Stops stop);
 
-	void AddStopsTrueLenght(std::deque<std::vector<DistanceTo>> length_stops);
-
 	void AddLenght(Stops* stop, std::vector<DistanceTo>);
 
 	void AddBus(std::string_view bus, const std::vector<std::string_view>& stops, bool ring);

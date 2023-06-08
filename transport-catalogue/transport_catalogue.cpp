@@ -72,17 +72,6 @@ void TrasportCatalogue::AddLenght(Stops* stop, std::vector<DistanceTo> vec_dista
 	}
 }
 
-void TrasportCatalogue::AddStopsTrueLenght(std::deque<std::vector<DistanceTo>> length_stops) {
-	for (size_t i = 0; i < length_stops.size(); i++) {
-		using namespace transport_catalogue;
-
-		for (const DistanceTo& elem : length_stops[i]) {
-			std::pair<Stops*, Stops*> stop_pair = std::make_pair(&stop_storage_[i], stops_catalogue_[elem.name_]);
-			true_lenght_.emplace(stop_pair, elem.lenght_);
-		}
-	}
-}
-
 //передаём bus_name через move
 void TrasportCatalogue::AddBus(std::string_view bus_name, const std::vector<std::string_view>& stops, bool ring) {
 //void TrasportCatalogue::AddBus(const std::string& bus_name, const std::vector<std::string_view>& stops, bool ring) {//Вариант с const T&
