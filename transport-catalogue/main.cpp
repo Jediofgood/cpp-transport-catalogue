@@ -1,5 +1,5 @@
-#include "input_reader.h"
 #include "stat_reader.h"
+#include "input_reader.h"
 
 #include <iostream>
 
@@ -8,18 +8,13 @@
 //≈щЄ учить и учить Google Guide Style C++;
 //≈щЄ много работы
 
-void StartAllTest() {
-	Test1();
-	Test_String_Split_Lenght();
-	Test_Request_type();
-
-	std::cout << "Test passed" << std::endl;
-}
-
 int main() {
 
-	StartAllTest();
+	Test1();
 
-	//transport_catalogue::Trasport_catalogue catalogue = input_readed::StartDatabase(std::cin);
-	//stat_reader::db_request(std::cin, std::cout, catalogue);
+	transport_catalogue::TrasportCatalogue catalogue;
+	input_readed::StartDatabase(std::cin, &catalogue);
+	stat_reader::StartRequesting(std::cin, std::cout, catalogue);
+
+	int i = 0;
 }

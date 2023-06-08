@@ -47,11 +47,6 @@ struct PrintBus {
 	bool in_catalogue = false;
 	std::string_view name = "";
 	InfoBus info;
-
-	size_t stops = 0;
-	size_t unique_stops = 0;
-	double length = 0;
-	double curvature = 0;
 };
 
 }//print_info
@@ -141,27 +136,18 @@ private:
 
 class TrasportCatalogue {
 public:
-	//Загружаем все остановки, т.к. остановки зависят от остановок, и автобусы зависят от остановок.
-	//Воизбежания конфликтов, проблем проще обработать сразу все остановки и добавить.
-	explicit TrasportCatalogue(
-		std::deque<transport_catalogue::Stops> stop_storage,
-		std::unordered_map<std::string_view, Stops*> stops_map,
-		std::unordered_map<std::pair<Stops*, Stops*>, size_t, Hashing> true_lenght,
-		std::unordered_map<std::string_view, std::set<std::string_view, std::less<>>> buses_on_stop
-		)
-		: stop_storage_(std::move(stop_storage)), stops_catalogue_(std::move(stops_map)), 
-		  true_lenght_(std::move(true_lenght)), buses_on_stop_(buses_on_stop)
-	{
-	}
-
 	explicit TrasportCatalogue()
 	{}
 
 	void AddStop(Stops stop);
 
+	Stops* AddStop1(Stops stop);
+
 	void AddStopsTrueLenght(std::deque<std::vector<DistanceTo>> length_stops);
 
-	void AddBus(std::string bus, const std::vector<std::string_view>& stops, bool ring);
+	void AddLenght(Stops* stop, std::vector<DistanceTo>);
+
+	void AddBus(std::string&& bus, const std::vector<std::string_view>& stops, bool ring);
 
 	void CalculateLenght(Bus& bus);
 

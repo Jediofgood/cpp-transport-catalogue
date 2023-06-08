@@ -65,6 +65,20 @@ void TrasportCatalogue::AddStop(Stops stop) {
 	buses_on_stop_[stop_storage_[0].GetName()];
 }
 
+Stops* TrasportCatalogue::AddStop1(Stops stop) {
+	stop_storage_.push_front(std::move(stop));
+	stops_catalogue_.emplace(stop_storage_[0].GetName(), &stop_storage_[0]);
+	buses_on_stop_[stop_storage_[0].GetName()];
+	return &stop_storage_[0];
+}
+
+void TrasportCatalogue::AddLenght(Stops* stop, std::vector<DistanceTo> vec_distance) {
+	for (const DistanceTo& elem : vec_distance) {
+		std::pair<Stops*, Stops*> stop_pair = std::make_pair(stop, stops_catalogue_[elem.name_]);
+		true_lenght_.emplace(stop_pair, elem.lenght_);
+	}
+}
+
 void TrasportCatalogue::AddStopsTrueLenght(std::deque<std::vector<DistanceTo>> length_stops) {
 	for (size_t i = 0; i < length_stops.size(); i++) {
 		using namespace transport_catalogue;
@@ -77,7 +91,7 @@ void TrasportCatalogue::AddStopsTrueLenght(std::deque<std::vector<DistanceTo>> l
 }
 
 //передаём bus_name через move
-void TrasportCatalogue::AddBus(std::string bus_name, const std::vector<std::string_view>& stops, bool ring) {
+void TrasportCatalogue::AddBus(std::string&& bus_name, const std::vector<std::string_view>& stops, bool ring) {
 //void TrasportCatalogue::AddBus(const std::string& bus_name, const std::vector<std::string_view>& stops, bool ring) {//Вариант с const T&
 
 	transport_catalogue::Bus bus(std::move(bus_name), ring);
