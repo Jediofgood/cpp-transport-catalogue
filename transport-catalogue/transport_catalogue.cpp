@@ -58,14 +58,7 @@ size_t Hashing::operator()(std::pair<Stops*, Stops* >stop_pair) const {
 	return hasher_(stop_pair.first) * (simple_num_ ^ 2) + hasher_(stop_pair.second) * simple_num_;
 }
 
-//Добавление остановок без зависимостей.
-void TrasportCatalogue::AddStop(Stops stop) {
-	stop_storage_.push_front(std::move(stop));
-	stops_catalogue_.emplace(stop_storage_[0].GetName(), &stop_storage_[0]);
-	buses_on_stop_[stop_storage_[0].GetName()];
-}
-
-Stops* TrasportCatalogue::AddStop1(Stops stop) {
+Stops* TrasportCatalogue::AddStop(Stops stop) {
 	stop_storage_.push_front(std::move(stop));
 	stops_catalogue_.emplace(stop_storage_[0].GetName(), &stop_storage_[0]);
 	buses_on_stop_[stop_storage_[0].GetName()];
@@ -91,10 +84,10 @@ void TrasportCatalogue::AddStopsTrueLenght(std::deque<std::vector<DistanceTo>> l
 }
 
 //передаём bus_name через move
-void TrasportCatalogue::AddBus(std::string&& bus_name, const std::vector<std::string_view>& stops, bool ring) {
+void TrasportCatalogue::AddBus(std::string_view bus_name, const std::vector<std::string_view>& stops, bool ring) {
 //void TrasportCatalogue::AddBus(const std::string& bus_name, const std::vector<std::string_view>& stops, bool ring) {//Вариант с const T&
 
-	transport_catalogue::Bus bus(std::move(bus_name), ring);
+	transport_catalogue::Bus bus(bus_name, ring);
 	//transport_catalogue::Bus bus(bus_name, ring);
 	bus_storage_.push_front(std::move(bus));
 	for (std::string_view stop : stops) {

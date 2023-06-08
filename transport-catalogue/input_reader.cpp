@@ -53,20 +53,24 @@ std::vector<std::string_view> SplitIntoWords(std::string_view str) {
 
 transport_catalogue::Stops* StopProcessing(std::string& line, transport_catalogue::TrasportCatalogue *trc) {
 	size_t pos = line.find(':');
-	std::string name = std::move(line.substr(0, pos));
-	name.erase(name.find_last_not_of(" ") + 1);
+
+	std::string_view name = line;
+	name.remove_suffix(name.size() - pos);
+	name.remove_suffix(name.size() - name.find_last_not_of(" ") - 1);
+
 
 	size_t pos_after_coord = line.find(',', line.find(',') + 1);
 
 	geo::Coordinates cord = ReadCoordinate(std::move(line.substr(pos + 1, pos_after_coord)));
+	transport_catalogue::Stops *ret = trc->AddStop(transport_catalogue::Stops(name, cord));
 	line.erase(0, pos_after_coord);
-	return trc->AddStop1(transport_catalogue::Stops(name, cord));
+	return ret;
 }
 
 void BusProcessing(std::string_view bus_line, transport_catalogue::TrasportCatalogue* trc) {
 	size_t pos = bus_line.find(':');
-	std::string bus_name = std::string(bus_line.substr(0, pos)); //имя автобуса.
-	bus_name.erase(bus_name.find_last_not_of(' ') + 1);
+	std::string_view bus_name = bus_line.substr(0, pos); //имя автобуса.
+	bus_name.remove_suffix(bus_name.size() - bus_name.find_last_not_of(' ') -1);
 	bus_line.remove_prefix(bus_name.size() + 2);
 	bool ring = false;
 	{
@@ -77,7 +81,7 @@ void BusProcessing(std::string_view bus_line, transport_catalogue::TrasportCatal
 	}
 
 	std::vector<std::string_view> stops = SplitIntoWords(bus_line);
-	trc->AddBus(std::move(bus_name), stops, ring);
+	trc->AddBus(bus_name, stops, ring);
 }
 
 std::vector<transport_catalogue::DistanceTo> StringSplitLenght(std::string_view strv) {
@@ -119,7 +123,7 @@ void AddDistance(std::unordered_map<transport_catalogue::Stops*, std::string&>& 
 	}
 }
 
-void SplitRequest(std::vector<std::string>& raw_data, transport_catalogue::TrasportCatalogue* trc) { //получаем raw_data через std::move
+void SplitRequest(std::vector<std::string>& raw_data, transport_catalogue::TrasportCatalogue* trc) {
 
 	std::vector<std::string_view> raw_buses;
 	std::unordered_map<transport_catalogue::Stops*, std::string&> lenght_lines;

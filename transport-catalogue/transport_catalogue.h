@@ -56,8 +56,8 @@ class Stops {
 public:
 	explicit Stops(){}
 
-	explicit Stops(std::string name, geo::Coordinates coordinates)
-		:stop_name_(std::move(name)), coordinates_(coordinates)
+	explicit Stops(std::string_view name, geo::Coordinates coordinates)
+		:stop_name_(std::string{ name.begin(), name.end() }), coordinates_(coordinates)
 	{
 		//info_.name = stop_name_;
 	}
@@ -87,17 +87,11 @@ public:
 	explicit Bus()
 	{}
 
-	explicit Bus(std::string bus, bool ring)
-		:bus_name_(std::move(bus))  //ј будет ли копирование таким образом происходить?
+	explicit Bus(std::string_view bus, bool ring)
+		:bus_name_(std::string{ bus.begin(), bus.end() })
 	{
 		route_.ring_ = ring;
 	}
-
-	//explicit Bus(const std::string& bus, bool ring)
-	//	:bus_name_(bus)  //
-	//{
-	//	route_.ring_ = ring;
-	//}
 	
 	//не используетс€ дл€ печати. нужен дл€ внутренних функций.
 	std::string_view GetName() const;
@@ -139,15 +133,13 @@ public:
 	explicit TrasportCatalogue()
 	{}
 
-	void AddStop(Stops stop);
-
-	Stops* AddStop1(Stops stop);
+	Stops* AddStop(Stops stop);
 
 	void AddStopsTrueLenght(std::deque<std::vector<DistanceTo>> length_stops);
 
 	void AddLenght(Stops* stop, std::vector<DistanceTo>);
 
-	void AddBus(std::string&& bus, const std::vector<std::string_view>& stops, bool ring);
+	void AddBus(std::string_view bus, const std::vector<std::string_view>& stops, bool ring);
 
 	void CalculateLenght(Bus& bus);
 
