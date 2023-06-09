@@ -51,20 +51,19 @@ std::vector<std::string_view> SplitIntoWords(std::string_view str) {
 	return result;
 }
 
-transport_catalogue::Stops* StopProcessing(std::string& line, transport_catalogue::TrasportCatalogue *trc) {
+std::string_view StopProcessing(std::string& line, transport_catalogue::TrasportCatalogue *trc) {
 	size_t pos = line.find(':');
 
 	std::string_view name = line;
 	name.remove_suffix(name.size() - pos);
 	name.remove_suffix(name.size() - name.find_last_not_of(" ") - 1);
 
-
 	size_t pos_after_coord = line.find(',', line.find(',') + 1);
 
 	geo::Coordinates cord = ReadCoordinate(std::move(line.substr(pos + 1, pos_after_coord)));
-	transport_catalogue::Stops *ret = trc->AddStop(transport_catalogue::Stops(name, cord));
-	line.erase(0, pos_after_coord);
-	return ret;
+	trc->AddStop(name, cord);
+	line.erase(pos, pos_after_coord - pos);
+	return name;
 }
 
 void BusProcessing(std::string_view bus_line, transport_catalogue::TrasportCatalogue* trc) {
@@ -117,16 +116,10 @@ std::vector<transport_catalogue::DistanceTo> StringSplitLenght(std::string_view 
 	return result;
 }
 
-void AddDistance(std::unordered_map<transport_catalogue::Stops*, std::string&>& lenght_lines, transport_catalogue::TrasportCatalogue* trc) {
-	for (auto& [stop_ptr, line] : lenght_lines) {
-		trc->AddLenght(stop_ptr, StringSplitLenght(line));
-	}
-}
-
 void SplitRequest(std::vector<std::string>& raw_data, transport_catalogue::TrasportCatalogue* trc) {
 
 	std::vector<std::string_view> raw_buses;
-	std::unordered_map<transport_catalogue::Stops*, std::string&> lenght_lines;
+	std::unordered_map<std::string_view, std::string_view> lenght_lines;
 
 	raw_buses.reserve(raw_data.size());
 
@@ -136,15 +129,21 @@ void SplitRequest(std::vector<std::string>& raw_data, transport_catalogue::Trasp
 		line.erase(0, pos+1);
 
 		if(type == RequestType::Stop){
-			transport_catalogue::Stops* stop_ptr = StopProcessing(line, trc);
-			lenght_lines.emplace(stop_ptr, line);
+			std::string_view stop_sv = StopProcessing(line, trc);
+			lenght_lines.emplace(stop_sv, line);
 		}
 		if (type == RequestType::Bus) {
 			raw_buses.push_back(line);
 		}
 	}
-	for (auto [stop_ptr, sv_line] : lenght_lines) {
-		trc->AddLenght(stop_ptr, StringSplitLenght(sv_line));
+	for (auto [stop_sv, sv_line] : lenght_lines) {
+		sv_line.remove_prefix(stop_sv.size());
+
+		for (transport_catalogue::DistanceTo& elem : StringSplitLenght(sv_line)) {
+			trc->AddLenghtBetweenTwoStops(stop_sv, elem.name_, elem.lenght_);
+		}
+
+		//trc->AddAllLenghtForOneStop(stop_sv, StringSplitLenght(sv_line));
 	}
 	for (std::string_view bus_line : raw_buses) {
 		BusProcessing(bus_line, trc);

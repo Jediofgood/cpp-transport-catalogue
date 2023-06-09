@@ -12,11 +12,11 @@ namespace stat_reader{
 		using namespace std::string_literals;
 		if (to_print.in_catalogue){
 			os << std::setprecision(6) <<
-			"Bus "s << to_print.info.name << ": " <<
-			to_print.info.stops << " stops on route, " <<
-			to_print.info.unique_stops << " unique stops, " <<
-			to_print.info.true_length << " route length, "
-			<< to_print.info.curvature << " curvature"
+			"Bus "s << to_print.name << ": " <<
+			to_print.stops << " stops on route, " <<
+			to_print.unique_stops << " unique stops, " <<
+			to_print.true_length << " route length, "
+			<< to_print.curvature << " curvature"
 			<< std::endl;
 		}
 		else {
@@ -29,10 +29,10 @@ std::ostream& operator<<(std::ostream& os, const transport_catalogue::print_info
 	using namespace std::string_literals;
 	if (to_print.in_catalogue) {
 		if (to_print.ptr_set->empty()) {
-			os << "Stop " << to_print.info.name << ": no buses" << std::endl;
+			os << "Stop " << to_print.name << ": no buses" << std::endl;
 		}
 		else {
-			os << "Stop " << to_print.info.name << ": buses";
+			os << "Stop " << to_print.name << ": buses";
 			for (std::string_view buses : *to_print.ptr_set) {
 				os << " " << buses;
 			}
@@ -40,7 +40,7 @@ std::ostream& operator<<(std::ostream& os, const transport_catalogue::print_info
 		}
 	}
 	else {
-		os << "Stop " << to_print.info.name << ": not found" << std::endl;
+		os << "Stop " << to_print.name << ": not found" << std::endl;
 	}
 	return os;
 }

@@ -15,38 +15,28 @@
 
 namespace transport_catalogue{
 
-class DistanceTo {
-public:
+class TrasportCatalogue;
+
+struct DistanceTo {
 	std::string_view name_;
 	double lenght_;
 };
 
 namespace print_info{
 
-struct InfoStop{
-	std::string_view name{};
-};
-
-struct InfoBus
-{
-	std::string_view name;
-	size_t stops = 0;
-	size_t unique_stops = 0;
-	double true_length = 0;
-	double straight_length = 0;
-	double curvature = 0;
-};
-
 struct PrintStop{
 	bool in_catalogue = false;
-	InfoStop info;
+	std::string_view name{};
 	const std::set<std::string_view, std::less<>>* ptr_set;
 };
 
 struct PrintBus {
 	bool in_catalogue = false;
 	std::string_view name = "";
-	InfoBus info;
+	size_t stops = 0;
+	size_t unique_stops = 0;
+	double true_length = 0;
+	double curvature = 0;
 };
 
 }//print_info
@@ -66,23 +56,22 @@ public:
 	//не используется для печати. нужен для внутренних функций.
 	geo::Coordinates GetCoordinate();
 
-	print_info::InfoStop GetInfo();
-
 private:
 	std::string stop_name_;
 	geo::Coordinates coordinates_;
-	print_info::InfoStop info_;
 };
 
 struct RouteInfo {
 	bool ring_;
 	std::vector<Stops*> the_route_;
-	std::unordered_set<std::string_view> unique_stops_set_;
+	size_t unique_stops_;
 };
 
 //Класс маршрутов.
 class Bus {
-	//friend Trasport_catalogue;
+
+friend transport_catalogue::TrasportCatalogue;
+
 public:
 	explicit Bus()
 	{}
@@ -93,31 +82,15 @@ public:
 		route_.ring_ = ring;
 	}
 	
-	//не используется для печати. нужен для внутренних функций.
 	std::string_view GetName() const;
 
 	void AddStop(std::string_view stop, Stops* stop_ptr);
 
-	const std::unordered_set<std::string_view>& GetStopsOnRoute() const;
-
 	const std::vector<Stops*>& GetRoute() const;
-
-	void AddTrueLenght(double leng);
-
-	void FillInfo();
-
-	print_info::InfoBus GetBus() const;
 
 private:
 	std::string bus_name_;
-
 	RouteInfo route_;
-	
-	//bool ring_;
-	//std::vector<Stops*> the_route_;
-	//std::unordered_set<std::string_view> unique_stops_;
-
-	print_info::InfoBus info_;
 };
 
 struct Hashing {
@@ -133,15 +106,19 @@ public:
 	explicit TrasportCatalogue()
 	{}
 
-	Stops* AddStop(Stops stop);
+	void AddStop(std::string_view name, geo::Coordinates coordinates);
 
-	void AddLenght(Stops* stop, std::vector<DistanceTo>);
+	//void AddAllLenghtForOneStop(Stops* stop, std::vector<DistanceTo>);
+
+	//void AddAllLenghtForOneStop(std::string_view stop, std::vector<DistanceTo>);
+
+	//void AddLenghtBetweenTwoStops(Stops* stop1, Stops* stop2, double lenght);
+
+	void AddLenghtBetweenTwoStops(std::string_view stop1, std::string_view stop2, double lenght);
+
+	double GetLenghtBetweenStops(Stops* stop1, Stops* stop2) const;
 
 	void AddBus(std::string_view bus, const std::vector<std::string_view>& stops, bool ring);
-
-	void CalculateLenght(Bus& bus);
-
-	void CalculateLenghtForAll();
 
 	const print_info::PrintStop GetPrintStop(std::string_view stop) const;
 
@@ -150,12 +127,14 @@ public:
 private:
 	std::deque<Stops> stop_storage_;
 	std::unordered_map<std::string_view, Stops*> stops_catalogue_;
-	std::unordered_map<std::pair<Stops*, Stops*>, size_t, Hashing> true_lenght_;
+	std::unordered_map<std::pair<Stops*, Stops*>, double, Hashing> true_lenght_;
 	std::unordered_map<std::string_view, std::set<std::string_view, std::less<>>> buses_on_stop_;
 
 	std::deque<Bus> bus_storage_;
 	std::unordered_map<std::string_view, Bus*> route_catalogue_;
+
+	double CalculateLenght(Bus& bus) const;
+	
+	double CalculateStraightLenght(Bus& bus) const;
 };
-
-
 }//transport_catalogue

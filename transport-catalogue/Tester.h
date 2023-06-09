@@ -105,8 +105,8 @@ void Test1() {
 
 	std::istringstream input_request{
 		"6\n"
-		"Bus 256\n"
 		"Bus 750\n"
+		"Bus 256\n"
 		"Bus 751\n"
 		"Stop Samara\n"
 		"Stop Prazhskaya\n"
@@ -115,8 +115,8 @@ void Test1() {
 
 	std::ostringstream output{};
 	std::ostringstream correct_output{
-		"Bus 256: 6 stops on route, 5 unique stops, 5950 route length, 1.36124 curvature\n"
 		"Bus 750: 7 stops on route, 3 unique stops, 27400 route length, 1.30853 curvature\n"
+		"Bus 256: 6 stops on route, 5 unique stops, 5950 route length, 1.36124 curvature\n"
 		"Bus 751: not found\n"
 		"Stop Samara: not found\n"
 		"Stop Prazhskaya: no buses\n"
