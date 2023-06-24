@@ -1,16 +1,28 @@
-#include "stat_reader.h"
-#include "input_reader.h"
+#include "request_handler.h"
 
 #include <iostream>
+#include <istream>
+#include <fstream>
 
-#include "Tester.h"
+#include <memory>
 
-//≈щЄ учить и учить Google Guide Style C++;
-//≈щЄ много работы
+#include "transport_catalogue.h"
+#include "json_reader.h"
+#include "map_renderer.h"
+#include "svg.h"
+
+#include "domain.h"
+
 
 int main() {
+	transport_catalogue::TrasportCatalogue trc;
+	json::Array req_array;
+	json::Dict render_map;
+	//std::ifstream input("inputwithpic.txt");
+	jsonreader::LoadJson(std::cin, &trc, &req_array, &render_map);
 
-	transport_catalogue::TrasportCatalogue catalogue;
-	input_readed::StartDatabase(std::cin, &catalogue);
-	stat_reader::StartRequesting(std::cin, std::cout, catalogue);
+	json::Document docjson(jsonhandler::RequestProcceing(req_array, &trc, render_map));
+	json::Print1(docjson, std::cout);
+
+
 }

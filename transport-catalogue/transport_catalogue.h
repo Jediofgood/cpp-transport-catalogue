@@ -9,6 +9,8 @@
 #include <vector>
 #include <set>
 
+#include <map>
+
 #include "geo.h"
 
 //class Trasport_catalogue;
@@ -52,9 +54,9 @@ public:
 		//info_.name = stop_name_;
 	}
 	//не используется для печати. нужен для внутренних функций.
-	std::string_view GetName();
+	std::string_view GetName() const;
 	//не используется для печати. нужен для внутренних функций.
-	geo::Coordinates GetCoordinate();
+	geo::Coordinates GetCoordinate() const;
 
 private:
 	std::string stop_name_;
@@ -84,7 +86,9 @@ public:
 	
 	std::string_view GetName() const;
 
-	void AddStop(std::string_view stop, Stops* stop_ptr);
+	void AddStop(Stops* stop_ptr);
+
+	bool IsRing() const;
 
 	const std::vector<Stops*>& GetRoute() const;
 
@@ -114,7 +118,7 @@ public:
 
 	//void AddLenghtBetweenTwoStops(Stops* stop1, Stops* stop2, double lenght);
 
-	void AddLenghtBetweenTwoStops(std::string_view stop1, std::string_view stop2, double lenght);
+	void AddLenghtBetweenStops(std::string_view stop1, std::string_view stop2, double lenght);
 
 	double GetLenghtBetweenStops(Stops* stop1, Stops* stop2) const;
 
@@ -124,6 +128,10 @@ public:
 
 	const print_info::PrintBus GetPrintBus(std::string_view bus) const;
 
+	const std::deque<Stops>& GetStops() const;
+
+	const std::map<std::string_view, Bus*> GetBuses() const;
+
 private:
 	std::deque<Stops> stop_storage_;
 	std::unordered_map<std::string_view, Stops*> stops_catalogue_;
@@ -131,7 +139,8 @@ private:
 	std::unordered_map<std::string_view, std::set<std::string_view, std::less<>>> buses_on_stop_;
 
 	std::deque<Bus> bus_storage_;
-	std::unordered_map<std::string_view, Bus*> route_catalogue_;
+	//std::unordered_map<std::string_view, Bus*> route_catalogue_;
+	std::map<std::string_view, Bus*> route_catalogue_;
 
 	double CalculateLenght(Bus& bus) const;
 	
