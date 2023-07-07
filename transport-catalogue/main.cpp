@@ -22,7 +22,7 @@ int main() {
 	jsonreader::LoadJson(std::cin, &trc, &req_array, &render_map);
 
 	json::Document docjson(jsonhandler::RequestProcceing(req_array, &trc, render_map));
-	json::Print1(docjson, std::cout);
+	json::Print(docjson, std::cout);
 
 
 }

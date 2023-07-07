@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <iterator>
+#include <sstream>
 
 #include "geo.h"
 #include "transport_catalogue.h"
@@ -144,7 +145,7 @@ void DrawBusRoutes(const std::map<std::string_view, transport_catalogue::Bus*>& 
     const RenderSettings& setting)
 {
     int i = 0;
-    int size_color = setting.color_palette.size();
+    unsigned size_color = setting.color_palette.size();
 
     for (const auto [namebus, busptr] : bus_to_draw) {
         svg::Polyline line;
@@ -168,7 +169,111 @@ void DrawBusRoutes(const std::map<std::string_view, transport_catalogue::Bus*>& 
     }
 }
 
-void AddBusName(const std::map<std::string_view, transport_catalogue::Bus*>& bus_to_draw,
+void VisualizeBusNameForRing(svg::Document* doc_res, const SphereProjector& spp,
+    const RenderSettings& setting, transport_catalogue::Bus* busptr,
+    int& i, int size_color) {
+
+    const std::vector<transport_catalogue::Stops*>& stops = busptr->GetRoute();
+
+    svg::Text text1;
+    svg::Text under_text1;
+
+    text1.SetPosition(spp(stops[0]->GetCoordinate()))
+        .SetOffset(setting.bus_label_offset)
+        .SetFontSize(setting.bus_label_font_size)
+        .SetFontFamily("Verdana")
+        .SetFontWeight("bold")
+        .SetData(static_cast<std::string>(busptr->GetName()))
+        .SetFillColor(setting.color_palette[i++ % size_color]);
+
+    under_text1.SetPosition(spp(stops[0]->GetCoordinate()))
+        .SetOffset(setting.bus_label_offset)
+        .SetFontSize(setting.bus_label_font_size)
+        .SetFontFamily("Verdana")
+        .SetFontWeight("bold")
+        .SetData(static_cast<std::string>(busptr->GetName()));
+
+    under_text1.SetFillColor(setting.underlayer_color)
+        .SetStrokeColor(setting.underlayer_color)
+        .SetStrokeWidth(setting.underlayer_width)
+        .SetStrokeLineCap(svg::StrokeLineCap::ROUND)
+        .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
+
+    auto underuniq_ptr = std::make_unique<svg::Text>(under_text1);
+    doc_res->AddPtr(std::move(underuniq_ptr));
+
+    auto uniq_ptr = std::make_unique<svg::Text>(text1);
+    doc_res->AddPtr(std::move(uniq_ptr));
+}
+
+void VisualizeBusNameForLine(svg::Document* doc_res, const SphereProjector& spp,
+    const RenderSettings& setting, transport_catalogue::Bus* busptr,
+    int& i, int size_color) {
+
+    const std::vector<transport_catalogue::Stops*>& stops = busptr->GetRoute();
+
+    svg::Text text1;
+    svg::Text under_text1;
+    svg::Text text2;
+    svg::Text under_text2;
+
+    text1.SetPosition(spp(stops[0]->GetCoordinate()))
+        .SetOffset(setting.bus_label_offset)
+        .SetFontSize(setting.bus_label_font_size)
+        .SetFontFamily("Verdana")
+        .SetFontWeight("bold")
+        .SetData(static_cast<std::string>(busptr->GetName()))
+        .SetFillColor(setting.color_palette[i % size_color]);
+
+    text2.SetPosition(spp(stops[stops.size() - 1]->GetCoordinate()))
+        .SetOffset(setting.bus_label_offset)
+        .SetFontSize(setting.bus_label_font_size)
+        .SetFontFamily("Verdana")
+        .SetFontWeight("bold")
+        .SetData(static_cast<std::string>(busptr->GetName()))
+        .SetFillColor(setting.color_palette[i++ % size_color]);
+
+    under_text1.SetPosition(spp(stops[0]->GetCoordinate()))
+        .SetOffset(setting.bus_label_offset)
+        .SetFontSize(setting.bus_label_font_size)
+        .SetFontFamily("Verdana")
+        .SetFontWeight("bold")
+        .SetData(static_cast<std::string>(busptr->GetName()));
+
+    under_text1.SetFillColor(setting.underlayer_color)
+        .SetStrokeColor(setting.underlayer_color)
+        .SetStrokeWidth(setting.underlayer_width)
+        .SetStrokeLineCap(svg::StrokeLineCap::ROUND)
+        .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
+
+    under_text2.SetPosition(spp(stops[stops.size() - 1]->GetCoordinate()))
+        .SetOffset(setting.bus_label_offset)
+        .SetFontSize(setting.bus_label_font_size)
+        .SetFontFamily("Verdana")
+        .SetFontWeight("bold")
+        .SetData(static_cast<std::string>(busptr->GetName()));
+
+    under_text2.SetFillColor(setting.underlayer_color)
+        .SetStrokeColor(setting.underlayer_color)
+        .SetStrokeWidth(setting.underlayer_width)
+        .SetStrokeLineCap(svg::StrokeLineCap::ROUND)
+        .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
+
+    auto under_uniq_ptr1 = std::make_unique<svg::Text>(under_text1);
+    auto under_uniq_ptr2 = std::make_unique<svg::Text>(under_text2);
+
+    auto uniq_ptr1 = std::make_unique<svg::Text>(text1);
+    auto uniq_ptr2 = std::make_unique<svg::Text>(text2);
+
+    doc_res->AddPtr(std::move(under_uniq_ptr1));
+    doc_res->AddPtr(std::move(uniq_ptr1));
+    doc_res->AddPtr(std::move(under_uniq_ptr2));
+
+
+    doc_res->AddPtr(std::move(uniq_ptr2));
+}
+
+void VisualizeBusName(const std::map<std::string_view, transport_catalogue::Bus*>& bus_to_draw,
     svg::Document* doc_res, const SphereProjector& spp,
     const RenderSettings& setting) {
     
@@ -180,7 +285,8 @@ void AddBusName(const std::map<std::string_view, transport_catalogue::Bus*>& bus
         const std::vector<transport_catalogue::Stops*>& stops = busptr->GetRoute();
 
         if (busptr->IsRing() or stops[0] == stops[stops.size() - 1]) {//круговой случий
-            
+            VisualizeBusNameForRing(doc_res, spp, setting, busptr, i, size_color);
+            /*
             svg::Text text1;
             svg::Text under_text1;
 
@@ -210,7 +316,10 @@ void AddBusName(const std::map<std::string_view, transport_catalogue::Bus*>& bus
 
             auto uniq_ptr = std::make_unique<svg::Text>(text1);
             doc_res->AddPtr(std::move(uniq_ptr));
+            */
         } else{
+            VisualizeBusNameForLine(doc_res, spp, setting, busptr, i, size_color);
+            /*
             svg::Text text1;
             svg::Text under_text1;
             svg::Text text2;
@@ -270,10 +379,13 @@ void AddBusName(const std::map<std::string_view, transport_catalogue::Bus*>& bus
 
 
             doc_res->AddPtr(std::move(uniq_ptr2));
+            */
         }
 
     }
 }
+
+
 
 void AddStopsPoint(std::map<std::string_view, const transport_catalogue::Stops*>& stop_to_draw,
     svg::Document* doc_res, const SphereProjector& spp,
@@ -352,7 +464,7 @@ svg::Document MapMaker(
     
 
     DrawBusRoutes(bus_to_draw, &doc_res, spp, setting);
-    AddBusName(bus_to_draw, &doc_res, spp, setting);
+    VisualizeBusName(bus_to_draw, &doc_res, spp, setting);
     AddStopsPoint(stops_render, &doc_res, spp, setting);
     AddStopsName(stops_render, &doc_res, spp, setting);
     
@@ -361,6 +473,14 @@ svg::Document MapMaker(
     return doc_res;
 }
 
-
+json::Node MapToNode(const svg::Document& svg_map, const json::Node& NodeId) {
+    using namespace std::string_literals;
+    json::Dict result;
+    result["request_id"s] = NodeId.AsMap().at("id"s).AsInt();
+    std::ostringstream output{};
+    svg_map.Render(output);
+    result["map"] = output.str();
+    return json::Node{ result };
+}
 
 }//render

@@ -12,6 +12,6 @@ json::Node StopTypeRequest(const json::Node* stop_req, transport_catalogue::Tras
 
 json::Node BusTypeRequest(const json::Node* bus_req, transport_catalogue::TrasportCatalogue* trc);
 
-json::Node SVGMapToNode(const svg::Document& svg_map);
+json::Node SVGMapToNode(const svg::Document& svg_map, const json::Node& NodeId);
 
 }

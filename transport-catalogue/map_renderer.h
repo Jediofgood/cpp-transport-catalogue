@@ -47,4 +47,6 @@ svg::Document MapMaker(
 	const json::Dict& render_map,
 	const transport_catalogue::TrasportCatalogue* trc);
 
+json::Node MapToNode(const svg::Document& svg_map, const json::Node& NodeId);
+
 }//render

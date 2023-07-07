@@ -12,6 +12,7 @@
 #include <map>
 
 #include "geo.h"
+#include "json.h"
 
 //class Trasport_catalogue;
 
@@ -66,7 +67,7 @@ private:
 struct RouteInfo {
 	bool ring_;
 	std::vector<Stops*> the_route_;
-	size_t unique_stops_;
+	int unique_stops_;
 };
 
 //Класс маршрутов.
@@ -126,7 +127,11 @@ public:
 
 	const print_info::PrintStop GetPrintStop(std::string_view stop) const;
 
+	const json::Node GetJsonStopRes(std::string_view stop, int id) const;
+
 	const print_info::PrintBus GetPrintBus(std::string_view bus) const;
+
+	const json::Node GetJsonBusRes(std::string_view bus_name, int id) const;
 
 	const std::deque<Stops>& GetStops() const;
 

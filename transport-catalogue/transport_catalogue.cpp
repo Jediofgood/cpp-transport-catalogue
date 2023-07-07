@@ -1,4 +1,5 @@
 #include "transport_catalogue.h"
+#include "json_builder.h"
 //класс транспортного справочника
 
 namespace transport_catalogue {
@@ -178,6 +179,27 @@ const print_info::PrintStop TrasportCatalogue::GetPrintStop(std::string_view sto
 	return result;
 }
 
+const json::Node TrasportCatalogue::GetJsonStopRes(std::string_view stop_name, int id) const {
+	using namespace std::string_literals;
+
+	if (stops_catalogue_.count(stop_name) == 0) {
+		return json::Builder{}.StartDict()
+			.Key("error_message"s).Value("not found"s)
+			.Key("request_id"s).Value(id)
+			.EndDict().Build();
+	}
+	else {
+		json::Array bus_array;
+		for (std::string_view bus : buses_on_stop_.at(stop_name)) {
+			bus_array.push_back(json::Node(static_cast<std::string>(bus)));
+		}
+		return json::Builder{}.StartDict()
+			.Key("request_id"s).Value(id)
+			.Key("buses"s).Value(bus_array)
+			.EndDict().Build();
+	}
+}
+
 const print_info::PrintBus TrasportCatalogue::GetPrintBus(std::string_view bus_name) const {
 	print_info::PrintBus to_print;
 
@@ -201,6 +223,40 @@ const print_info::PrintBus TrasportCatalogue::GetPrintBus(std::string_view bus_n
 
 	}
 	return to_print;
+}
+
+const json::Node TrasportCatalogue::GetJsonBusRes(std::string_view bus_name, int id) const {
+	print_info::PrintBus to_print;
+
+	using namespace std::string_literals;
+	if (route_catalogue_.count(bus_name) == 0) {
+		return json::Builder{}.StartDict()
+			.Key("error_message"s).Value("not found"s)
+			.Key("request_id"s).Value(id)
+			.EndDict().Build();
+
+	}
+	else {
+		Bus* bus = route_catalogue_.at(bus_name);
+		int stops_count = 0;
+		if (bus->IsRing()) {
+			stops_count = bus->route_.the_route_.size();
+		}
+		else {
+			stops_count = bus->route_.the_route_.size() * 2 - 1;
+		}
+
+		double leng = CalculateLenght(*bus);
+
+		return json::Builder{}.StartDict()
+			.Key("request_id"s).Value(id)
+			.Key("curvature").Value(leng / CalculateStraightLenght(*bus))
+			.Key("route_length"s).Value(leng)
+			.Key("stop_count"s).Value(stops_count)
+			.Key("unique_stop_count"s).Value(bus->route_.unique_stops_)
+			.EndDict()
+			.Build();
+	}
 }
 
 }//transport_catalogue
