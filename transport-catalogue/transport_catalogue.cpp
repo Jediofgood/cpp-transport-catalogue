@@ -12,6 +12,10 @@ geo::Coordinates Stops::GetCoordinate() const {
 	return coordinates_;
 }
 
+size_t Stops::GetId() const {
+	return id_;
+}
+
 std::string_view Bus::GetName() const {
 	return bus_name_;
 }
@@ -33,29 +37,13 @@ size_t Hashing::operator()(std::pair<Stops*, Stops* >stop_pair) const {
 }
 
 void TrasportCatalogue::AddStop(std::string_view name, geo::Coordinates coordinates) {
-	stop_storage_.push_front(std::move(Stops{ name, coordinates }));
-	stops_catalogue_.emplace(stop_storage_[0].GetName(), &stop_storage_[0]);
-	buses_on_stop_[stop_storage_[0].GetName()];
+	//stop_storage_.push_front(std::move(Stops{ name, coordinates, last_id++ }));
+	stop_storage_.push_back(std::move(Stops{ name, coordinates, last_id++ }));
+	//stops_catalogue_.emplace(stop_storage_[0].GetName(), &stop_storage_[0]);
+	stops_catalogue_.emplace(stop_storage_.back().GetName(), &stop_storage_.back());
+	//buses_on_stop_[stop_storage_[0].GetName()];
+	buses_on_stop_[stop_storage_.back().GetName()];
 }
-/*
-void TrasportCatalogue::AddAllLenghtForOneStop(Stops* stop, std::vector<DistanceTo> vec_distance) {
-	for (const DistanceTo& elem : vec_distance) {
-		AddLenghtBetweenTwoStops(stop, stops_catalogue_[elem.name_], elem.lenght_);
-	}
-}
-
-
-void TrasportCatalogue::AddAllLenghtForOneStop(std::string_view stop, std::vector<DistanceTo> vec_distance) {
-	for (const DistanceTo& elem : vec_distance) {
-		AddLenghtBetweenTwoStops(stop, elem.name_, elem.lenght_);
-	}
-}
-
-void TrasportCatalogue::AddLenghtBetweenTwoStops(Stops* stop1, Stops* stop2, double lenght) {
-	std::pair<Stops*, Stops*> stop_pair = std::make_pair(stop1, stop2);
-	true_lenght_.emplace(stop_pair, lenght);
-}
-*/
 
 void TrasportCatalogue::AddLenghtBetweenStops(std::string_view stop1, std::string_view stop2, double lenght) {
 	std::pair<Stops*, Stops*> stop_pair = std::make_pair(stops_catalogue_[stop1], stops_catalogue_[stop2]);
@@ -81,6 +69,10 @@ double TrasportCatalogue::GetLenghtBetweenStops(Stops* stop1, Stops* stop2) cons
 	return leng;
 }
 
+double TrasportCatalogue::GetLenghtBetweenStopsInKM(Stops* stop1,Stops* stop2) const {
+	return GetLenghtBetweenStops(stop1, stop2)/1000;
+}
+
 void TrasportCatalogue::AddBus(std::string_view bus_name, const std::vector<std::string_view>& stops, bool ring) {
 	bus_storage_.push_front(transport_catalogue::Bus(bus_name, ring));
 	std::unordered_set<std::string_view> unique_stops_set;
@@ -90,14 +82,13 @@ void TrasportCatalogue::AddBus(std::string_view bus_name, const std::vector<std:
 		buses_on_stop_[stop].insert(bus_storage_[0].GetName());
 		unique_stops_set.insert(stop);
 	}
-	/*
-	if (!ring) {
-		for (auto it = stops.rbegin() + 1; it != stops.rend(); ++it) {
-			bus_storage_[0].AddStop(stops_catalogue_.at(*it));
-		}
-	}*/
+
 	bus_storage_[0].route_.unique_stops_ = unique_stops_set.size();
 	route_catalogue_.insert({ bus_storage_[0].GetName(), &bus_storage_[0] });
+}
+
+Stops* TrasportCatalogue::GetStopPTR(std::string_view name) {
+	return stops_catalogue_.at(name);
 }
 
 double TrasportCatalogue::CalculateLenght(Bus& bus) const{
@@ -257,6 +248,10 @@ const json::Node TrasportCatalogue::GetJsonBusRes(std::string_view bus_name, int
 			.EndDict()
 			.Build();
 	}
+}
+
+size_t TrasportCatalogue::GetLastStopId() const {
+	return last_id;
 }
 
 }//transport_catalogue

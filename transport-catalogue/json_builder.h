@@ -20,15 +20,17 @@ public:
 
 	Context Value(Node node);
 
-	//DictValue Key(std::string);
+	Builder Key(std::string);
 	DictKey StartDict();
 	ArrayValue StartArray();
-	//Context EndDict();
-	//Context EndArray();
+	Builder EndDict();
+	Builder EndArray();
 private:
 	Node root_{};
 	std::vector<Node*> nodes_stack_;
 	std::optional<std::string> key_{};
+
+	Node* AddNewObj();
 
 public:
 	class Context {
@@ -43,6 +45,8 @@ public:
 		ArrayValue StartArray();
 		Context EndDict();
 		Context EndArray();
+
+		Node* AddNewObj();
 	protected:
 		void ValueWorker(Node node);
 	//private:
@@ -53,7 +57,7 @@ public:
 	public:
 		DictKey(Builder* builder);
 
-		Builder& Value(Node node) = delete;//Просто удалить. 
+		Builder& Value(Node node) = delete;
 
 		Node Build() = delete;
 		DictKey StartDict() = delete;
@@ -62,17 +66,19 @@ public:
 	protected:
 		void ValueWorker(Node) = delete;
 	};
+
 	class DictValue : public Context {
 	public:
 		DictValue(Builder* builder);
 
-		DictKey Value(Node node); //???
+		DictKey Value(Node node);
 
 		Node Build() = delete;
 		DictValue Key(std::string) = delete;
 		Context EndDict() = delete;
 		Context EndArray() = delete;
 	};
+
 	class ArrayValue: public Context {
 	public:
 		ArrayValue(Builder* builder);
@@ -84,10 +90,7 @@ public:
 
 		Context EndDict() = delete;
 	};
+
 };
-
-
-
-
 
 }//json

@@ -20,11 +20,19 @@ json::Node StopTypeRequest(const json::Node* stop_req, transport_catalogue::Tras
 	return trc->GetJsonStopRes(stop_req->AsMap().at("name"s).AsString(), stop_req->AsMap().at("id"s).AsInt());
 }
 
+json::Node RouteTypeRequest(const json::Node& route_req, transport_catalogue::TrasportCatalogue* trc, transport_router::TransportRouter* tr) {
+	using namespace std::string_literals;
+	return tr->RouteBuild(route_req.AsMap(), trc);
+}
+
 json::Node SVGMapToNode(const svg::Document& svg_map, const json::Node& NodeId) {
 	return render::MapToNode(svg_map, NodeId);
 }
 
-json::Node RequestProcceing(const json::Array& req_array, transport_catalogue::TrasportCatalogue* trc, const json::Dict& render_map){
+json::Node RequestProcceing(const json::Array& req_array, 
+		transport_catalogue::TrasportCatalogue* trc,
+		const json::Dict& render_map,
+		transport_router::TransportRouter* tr){
 	using namespace std::string_view_literals;
 
 	json::Array result;
@@ -40,6 +48,9 @@ json::Node RequestProcceing(const json::Array& req_array, transport_catalogue::T
 		}
 		else if (type == "Map"sv) {
 			result.push_back(SVGMapToNode(render::MapMaker(render_map, trc), req_node));
+		}
+		else if (type == "Route"sv) {
+			result.push_back(RouteTypeRequest(req_node, trc, tr));
 		}
 		else {
 			throw std::invalid_argument("");

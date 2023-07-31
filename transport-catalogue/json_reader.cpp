@@ -3,13 +3,18 @@
 #include "request_handler.h"
 #include "map_renderer.h"
 
+
 #include <string>
 #include <unordered_map>
 #include <execution>
 
 namespace jsonreader {
 	
-void LoadJson(std::istream& is, transport_catalogue::TrasportCatalogue* trc, json::Array* req_array, json::Dict* render_map){
+void LoadJson(std::istream& is, 
+		transport_catalogue::TrasportCatalogue* trc, 
+		json::Array* req_array, 
+		json::Dict* render_map)
+{
 	json::Document doc = json::Load(is);
 	const json::Dict& the_map = doc.GetRoot().AsMap();
 	const json::Array& base_array = the_map.at("base_requests").AsArray();
@@ -17,6 +22,23 @@ void LoadJson(std::istream& is, transport_catalogue::TrasportCatalogue* trc, jso
 	if(the_map.count("render_settings")){
 		*render_map = the_map.at("render_settings").AsMap();
 	}
+	LoadFromJsonDB(base_array, trc);
+}
+
+void LoadJson(std::istream& is,
+		transport_catalogue::TrasportCatalogue* trc,
+		json::Node& tr_set,
+		json::Array* req_array,
+		json::Dict* render_map)
+{
+	json::Document doc = json::Load(is);
+	const json::Dict& the_map = doc.GetRoot().AsMap();
+	const json::Array& base_array = the_map.at("base_requests").AsArray();
+	*req_array = the_map.at("stat_requests").AsArray();
+	if (the_map.count("render_settings")) {
+		*render_map = the_map.at("render_settings").AsMap();
+	}
+	tr_set = (the_map.at("routing_settings"));
 	LoadFromJsonDB(base_array, trc);
 }
 

@@ -51,17 +51,20 @@ public:
 
 	explicit Stops(std::string_view name, geo::Coordinates coordinates)
 		:stop_name_(std::string{ name.begin(), name.end() }), coordinates_(coordinates)
-	{
-		//info_.name = stop_name_;
-	}
-	//не используется для печати. нужен для внутренних функций.
+	{}
+
+	explicit Stops(std::string_view name, geo::Coordinates coordinates, size_t id)
+		:stop_name_(std::string{ name.begin(), name.end() }), coordinates_(coordinates), id_(id)
+	{}
 	std::string_view GetName() const;
-	//не используется для печати. нужен для внутренних функций.
+	size_t GetId() const;
 	geo::Coordinates GetCoordinate() const;
 
 private:
 	std::string stop_name_;
 	geo::Coordinates coordinates_;
+
+	size_t id_ = 0;
 };
 
 struct RouteInfo {
@@ -113,17 +116,15 @@ public:
 
 	void AddStop(std::string_view name, geo::Coordinates coordinates);
 
-	//void AddAllLenghtForOneStop(Stops* stop, std::vector<DistanceTo>);
-
-	//void AddAllLenghtForOneStop(std::string_view stop, std::vector<DistanceTo>);
-
-	//void AddLenghtBetweenTwoStops(Stops* stop1, Stops* stop2, double lenght);
-
 	void AddLenghtBetweenStops(std::string_view stop1, std::string_view stop2, double lenght);
 
 	double GetLenghtBetweenStops(Stops* stop1, Stops* stop2) const;
 
+	double GetLenghtBetweenStopsInKM(Stops* stop1, Stops* stop2) const;
+
 	void AddBus(std::string_view bus, const std::vector<std::string_view>& stops, bool ring);
+
+	Stops* GetStopPTR(std::string_view name);
 
 	const print_info::PrintStop GetPrintStop(std::string_view stop) const;
 
@@ -137,6 +138,8 @@ public:
 
 	const std::map<std::string_view, Bus*> GetBuses() const;
 
+	size_t GetLastStopId() const;
+
 private:
 	std::deque<Stops> stop_storage_;
 	std::unordered_map<std::string_view, Stops*> stops_catalogue_;
@@ -144,11 +147,13 @@ private:
 	std::unordered_map<std::string_view, std::set<std::string_view, std::less<>>> buses_on_stop_;
 
 	std::deque<Bus> bus_storage_;
-	//std::unordered_map<std::string_view, Bus*> route_catalogue_;
 	std::map<std::string_view, Bus*> route_catalogue_;
+
+	size_t last_id = 0;
 
 	double CalculateLenght(Bus& bus) const;
 	
 	double CalculateStraightLenght(Bus& bus) const;
 };
+
 }//transport_catalogue

@@ -21,12 +21,24 @@ Builder::ArrayValue::ArrayValue(Builder* builder)
 	:Context(builder)
 {}
 
-Builder::Context Builder::Value(Node value) {
+Node* Builder::AddNewObj() {
 	if (nodes_stack_.size() == 0) {
 		throw std::logic_error("");
 	}
 
-	Node* last_node = nodes_stack_.back();
+	return nodes_stack_.back();
+}
+
+Node* Builder::Context::AddNewObj() {
+	if (builder_->nodes_stack_.size() == 0) {
+		throw std::logic_error("");
+	}
+
+	return builder_->nodes_stack_.back();
+}
+
+Builder::Context Builder::Value(Node value) {
+	Node* last_node = AddNewObj();
 
 	if (last_node->IsDict()) {
 		if (key_.has_value()) {
@@ -64,10 +76,8 @@ Node Builder::Build() {
 }
 
 Builder::DictValue Builder::Context::Key(std::string key) {
-	if (builder_->nodes_stack_.size() == 0) {
-		throw std::logic_error("");
-	}
-	Node* last_node = builder_->nodes_stack_.back();
+	Node* last_node = AddNewObj();
+
 	if (!last_node->IsDict()) {
 		throw std::logic_error("Not a Dict");
 	}
@@ -79,12 +89,11 @@ Builder::DictValue Builder::Context::Key(std::string key) {
 	}
 	return DictValue{ builder_ };
 }
-Builder::DictKey Builder::Context::StartDict() {
-	if (builder_->nodes_stack_.size() == 0) {
-		throw std::logic_error("");
-	}
 
-	Node* last_node = builder_->nodes_stack_.back();
+Builder::DictKey Builder::Context::StartDict() {
+
+	Node* last_node = AddNewObj();
+
 	if (last_node->IsDict()) {
 		if (!builder_->key_.has_value()) {
 			throw std::logic_error("");
@@ -111,12 +120,10 @@ Builder::DictKey Builder::Context::StartDict() {
 	}
 	return DictKey{ builder_ };
 }
-Builder::ArrayValue Builder::Context::StartArray() {
-	if (builder_->nodes_stack_.size() == 0) {
-		throw std::logic_error("");
-	}
 
-	Node* last_node = builder_->nodes_stack_.back();
+Builder::ArrayValue Builder::Context::StartArray() {
+	Node* last_node = AddNewObj();
+
 	if (last_node->IsDict()) {
 		if (!builder_->key_.has_value()) {
 			throw std::logic_error("");
@@ -143,28 +150,27 @@ Builder::ArrayValue Builder::Context::StartArray() {
 	}
 	return ArrayValue{ builder_ };
 }
+
 Builder::Context Builder::Context::EndDict() {
-	if (builder_->nodes_stack_.size() == 0) {
-		throw std::logic_error("");
-	}
-	Node* last_node = builder_->nodes_stack_.back();
+	Node* last_node = AddNewObj();
+
 	if (!last_node->IsDict()) {
 		throw std::logic_error("");
 	}
 	builder_->nodes_stack_.pop_back();
 	return Context{ builder_ };
 }
+
 Builder::Context Builder::Context::EndArray() {
-	if (builder_->nodes_stack_.size() == 0) {
-		throw std::logic_error("");
-	}
-	Node* last_node = builder_->nodes_stack_.back();
+	Node* last_node = AddNewObj();
+
 	if (!last_node->IsArray()) {
 		throw std::logic_error("");
 	}
 	builder_->nodes_stack_.pop_back();
 	return Context{ builder_ };
 }
+
 Node Builder::Context::Build() {
 	return builder_->Build();
 }
@@ -172,16 +178,15 @@ Node Builder::Context::Build() {
 Builder::DictKey Builder::StartDict() {
 	return Context{this}.StartDict();
 }
+
 Builder::ArrayValue Builder::StartArray() {
 	return Context{ this }.StartArray();
 }
 
-void Builder::Context::ValueWorker(Node value) {
-	if (builder_->nodes_stack_.size() == 0) {
-		throw std::logic_error("");
-	}
 
-	Node* last_node = builder_->nodes_stack_.back();
+void Builder::Context::ValueWorker(Node value) {
+	Node* last_node = AddNewObj();
+
 
 	if (last_node->IsDict()) {
 		if (builder_->key_.has_value()) {
