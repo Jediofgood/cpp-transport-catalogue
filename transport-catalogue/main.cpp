@@ -23,11 +23,15 @@ int main() {
 	json::Dict render_map;
 	json::Node trasport_router_set;
 
-	std::ifstream input("newinput.json");
+	//std::ifstream input("newinput.json");
+	//jsonreader::LoadJson(input, &trc, trasport_router_set, &req_array, &render_map);
 	jsonreader::LoadJson(std::cin, &trc, trasport_router_set, &req_array, &render_map);
-	transport_router::TransportRouter rb{ trasport_router_set, &trc };
 
-	rb.Initialization(&trc);
+	transport_router::TransportRouterJSON rb (
+		(transport_router::TransportRouter{ transport_router::StartRouter(trasport_router_set), &trc }
+	));
+
+	rb.Initialization();
 
 	json::Document docjson(jsonhandler::RequestProcceing(req_array, &trc, render_map, &rb));
 	json::Print(docjson, std::cout);
