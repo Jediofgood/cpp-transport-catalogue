@@ -22,4 +22,11 @@ json::Node RouteTypeRequest(const json::Node* bus_req,  transport_router::Transp
 
 json::Node SVGMapToNode(const svg::Document& svg_map, const json::Node& NodeId);
 
+//protobuff here
+
+json::Node ProtoRequestProcceing(const json::Array& req_array,
+	transport_catalogue::TrasportCatalogue* trc,
+	const proto_render::RenderSettings& rendersettings,
+	transport_router::TransportRouterJSON* tr);
+
 }

@@ -2,7 +2,7 @@
 
 #include "map_renderer.h"
 
-#include <execution>
+//#include <execution>
 #include <string>
 #include <sstream>
 #include "json_builder.h"
@@ -48,7 +48,7 @@ json::Node RequestProcceing(const json::Array& req_array,
 			result.push_back(std::move(StopTypeRequest(&req_node, trc)));
 		}
 		else if (type == "Map"sv) {
-			result.push_back(SVGMapToNode(render::MapMaker(render_map, trc), req_node));
+			result.push_back(SVGMapToNode(render::MapMaker(render::FillSettings(render_map), trc), req_node));
 		}
 		else if (type == "Route"sv) {
 			result.push_back(RouteTypeRequest(req_node, tr));
@@ -60,4 +60,38 @@ json::Node RequestProcceing(const json::Array& req_array,
 	return json::Node(result);
 }
 
+//ProtoBuff Start's here
+
+json::Node ProtoRequestProcceing(const json::Array& req_array,
+	transport_catalogue::TrasportCatalogue* trc,
+	const proto_render::RenderSettings& rendersettings,
+	transport_router::TransportRouterJSON* tr
+	) {
+
+	using namespace std::string_view_literals;
+
+	json::Array result;
+
+	for (const json::Node& req_node : req_array) {
+		const json::Dict req_map = req_node.AsMap();
+		std::string_view type = req_map.at("type").AsString();
+		if (type == "Bus"sv) {
+			result.push_back(std::move(BusTypeRequest(&req_node, trc)));
+		}
+		else if (type == "Stop"sv) {
+			result.push_back(std::move(StopTypeRequest(&req_node, trc)));
+		}
+		else if (type == "Map"sv) {
+			result.push_back(SVGMapToNode(render::MapMaker(render::FillSetFromProto(rendersettings), trc), req_node));
+		}
+		else if (type == "Route"sv) {
+			result.push_back(RouteTypeRequest(req_node, tr));
+		}
+		else {
+			throw std::invalid_argument("");
+		}
+	}
+	return json::Node(result);
+}
+	
 }

@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+import "graph.proto";
+
+package proto_router;
+
+message BusTimeInfo {
+	int32 bus_wait_time = 1;
+	double bus_velocity = 2;
+};
+
+message TransportRouter{
+	int32 bus_wait_time = 1;
+	double bus_velocity = 2;
+	proto_grapth.DirectedWeightedGraph graph = 3;
+	//oneof optional{
+		//bool is_value = 4;
+		//proto_grapth.Router route = 5;
+	//}
+}

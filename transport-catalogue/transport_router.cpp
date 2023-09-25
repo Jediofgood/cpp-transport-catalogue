@@ -149,4 +149,150 @@ json::Node TransportRouterJSON::FillAnswer(int id, const graph::Router<double>::
 	return json::Builder{}.StartDict().Key("request_id"s).Value(id).Key("total_time"s).Value(weight).Key("items").Value(route).EndDict().Build();
 }
 
+//ProtoBuff Start here
+
+void TransportRouter::PackGraphPBEdges(proto_grapth::DirectedWeightedGraph* p_graph) {
+	const std::vector<graph::Edge<double>>& edges = graph_.GetEdges();
+	for (const graph::Edge<double>& edge : edges) {
+		proto_grapth::Edge& p_edge = *p_graph->add_edge();
+		p_edge.set_from(edge.from);
+		p_edge.set_to(edge.to);
+		(*p_edge.mutable_weight()).set_weight(edge.weight);
+
+		proto_grapth::EdgeInfo& p_info = *p_edge.mutable_info();
+		const graph_transport_info::EdgeInfo& info = edge.info;
+
+		p_info.set_bus_name(std::string{ info.bus_name });
+		p_info.set_span(info.span);
+		p_info.set_leng(info.leng);
+	}
+}
+
+void TransportRouter::PackGraphPBIncidenceLists(proto_grapth::DirectedWeightedGraph* p_graph) {
+	const std::vector<std::vector<graph::EdgeId>>& incidence_lists = graph_.GetIncidenceList();
+	for (const std::vector<graph::EdgeId>& incidence_list : incidence_lists) {
+		proto_grapth::IncidenceList& p_list = *p_graph->add_incidence_lists();
+
+		for (size_t edge_id : incidence_list) {
+			proto_grapth::EdgeId& p_edge_id = *p_list.add_edgeid();
+			p_edge_id.set_id(edge_id);
+		}
+	}
+}
+
+void TransportRouter::PackGraphPB(proto_grapth::DirectedWeightedGraph* p_graph) {
+	graph_ = graph::DirectedWeightedGraph<double>{ trc_->GetLastStopId() };
+	CreateGraph();
+	PackGraphPBEdges(p_graph);
+	PackGraphPBIncidenceLists(p_graph);
+}
+
+void TransportRouter::PackPB(transport_catalogue_proto::CataloguePackage& db) {
+
+	proto_router::TransportRouter& TRrouter = *db.mutable_router();
+
+	TRrouter.set_bus_wait_time(bus_wait_time_);
+	TRrouter.set_bus_velocity(bus_velocity_);
+
+	proto_grapth::DirectedWeightedGraph& p_graph = *TRrouter.mutable_graph();
+
+	PackGraphPB(&p_graph);
+}
+
+std::vector<graph::Edge<double>> TransportRouter::FillEdges(const proto_grapth::DirectedWeightedGraph& graph) {
+	std::vector<graph::Edge<double>> edges;
+	for (const proto_grapth::Edge& p_edge : graph.edge()) {
+
+		const proto_grapth::EdgeInfo& p_ed_id = p_edge.info();
+
+		graph_transport_info::EdgeInfo info{
+			trc_->GetBusStringView(p_ed_id.bus_name()),
+			p_ed_id.span(),
+			p_ed_id.leng()
+		};
+
+		graph::Edge<double> edge{ p_edge.from(), p_edge.to(), p_edge.weight().weight(), info };
+		edges.push_back(edge);
+	}
+	return edges;
+}
+
+std::vector<std::vector<size_t>> TransportRouter::IncidenceList(const proto_grapth::DirectedWeightedGraph& graph) {
+	std::vector<std::vector<size_t>> incidence_lists;
+	incidence_lists.reserve(graph.incidence_lists_size());
+
+	for (const proto_grapth::IncidenceList p_list : graph.incidence_lists()) {
+
+		std::vector<size_t> under_list;
+		under_list.reserve(p_list.edgeid_size());
+
+		for (const proto_grapth::EdgeId p_id : p_list.edgeid()) {
+			under_list.push_back(p_id.id());
+		}
+
+		incidence_lists.push_back(under_list);
+	}
+	return incidence_lists;
+}
+
+void TransportRouter::FillGraph(const transport_catalogue_proto::CataloguePackage& db) {
+	//graph::DirectedWeightedGraph<double> result;
+
+	const proto_router::TransportRouter& tr = db.router();
+
+	bus_wait_time_ = tr.bus_wait_time();
+	bus_velocity_ = tr.bus_velocity();
+
+	const proto_grapth::DirectedWeightedGraph& graph = tr.graph();
+
+	graph_.SetEdges(std::move(FillEdges(graph)));
+	graph_.SetIncidenceList(std::move(IncidenceList(graph)));	
+}
+
+/*
+void TransportRouter::FillOptRouter(const transport_catalogue_proto::CataloguePackage& db) {
+	FillGraph(db);
+
+	//std::vector<std::vector<std::optional<graph::Router<double>::RouteInternalData>>> routes_internal_data;
+
+	//const proto_grapth::Router& p_route = db.router().route();
+
+	//std::vector<std::vector<std::optional<graph::Router<double>::RouteInternalData>>> routes_internal_data(p_route.routes_internal_data_size());
+
+	//for (const proto_grapth::RoutesInternalData& vec1 : p_route.routes_internal_data()) {
+		//std::vector<std::optional<graph::Router<double>::RouteInternalData>> route_internal_data(vec1.vect_size());
+
+		//for (const proto_grapth::OptionalRouteInternalData& p_opt : vec1.vect()) {
+			//if (p_opt.has_value()) {
+				//const proto_grapth::RouteInternalData& p_data = p_opt.value();
+
+				//graph::Router<double>::RouteInternalData data;
+				//data.weight = p_data.weight().weight();
+				//if (p_data.has_prev_edge()) {
+				//	data.prev_edge = std::make_optional<size_t>(p_data.prev_edge().id());
+				//}
+
+				//route_internal_data.push_back(data);
+			//}
+		//}
+	//}
+
+	//graph::Router<double> rout{ graph_, routes_internal_data };
+
+}
+*/
+
+void TransportRouter::ProtoInitialization() {
+	opt_router_.emplace(graph::Router<double>{graph_});
+}
+
+TransportRouter::TransportRouter(const transport_catalogue_proto::CataloguePackage& db,
+	transport_catalogue::TrasportCatalogue* trc) 
+{
+	trc_ = trc;
+	FillGraph(db);
+}
+
+
+
 }//transport_router

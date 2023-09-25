@@ -1,0 +1,70 @@
+syntax = "proto3"; 
+
+package proto_grapth;
+
+//В случае изменения шаблона <weight> с double на что-то, можно будет поменять только этот message
+message Weight{
+    double weight = 1;
+}
+
+message EdgeId{
+    uint64 id = 1;
+}
+
+message VertexId{
+    uint64 vertex_id = 1;
+}
+
+message EdgeInfo {
+    string bus_name = 1;
+    int32 span = 2;
+    double leng = 3;
+}
+
+message Edge {
+    int64 from = 1;
+    int64 to = 2;
+    Weight weight = 3;
+    EdgeInfo info = 4;
+}
+
+message IncidenceList{
+    repeated EdgeId edgeid = 1;
+}
+
+message DirectedWeightedGraph{
+    repeated Edge edge = 1;
+    repeated IncidenceList incidence_lists = 2;
+}
+
+/*
+
+message RouteInfo {
+    Weight weight = 1;
+    repeated EdgeId edges = 2;
+}
+
+message RouteInternalData {
+    Weight weight = 1;
+    oneof optional{
+        bool is_value = 2;
+        EdgeId prev_edge = 3;   
+    }
+}
+
+message OptionalRouteInternalData{
+    oneof optional{
+        bool is_value = 1;
+        RouteInternalData value = 2;
+    }
+}
+
+message RoutesInternalData{
+    repeated OptionalRouteInternalData vect = 1;
+}
+
+
+message Router{
+    repeated RoutesInternalData routes_internal_data = 2;
+}
+*/

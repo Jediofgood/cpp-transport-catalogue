@@ -8,6 +8,8 @@
 #include <memory>
 #include <optional>
 
+#include <transport_catalogue.pb.h>
+
 namespace transport_router {
 
 struct BusTimeInfo {
@@ -20,8 +22,18 @@ BusTimeInfo StartRouter(const json::Node& node);
 class TransportRouter {
 public:
 	TransportRouter(BusTimeInfo info, transport_catalogue::TrasportCatalogue*);
-	
+
+	TransportRouter(const transport_catalogue_proto::CataloguePackage& db,
+		transport_catalogue::TrasportCatalogue* trc);
+
 	void Initialization();
+	void ProtoInitialization();
+
+	void PackGraphPB(proto_grapth::DirectedWeightedGraph* p_graph);
+
+	//void PackageRoutePB(proto_grapth::Router* router);
+
+	void PackPB(transport_catalogue_proto::CataloguePackage& db);
 
 protected:
 	static const int min_int_hour = 60;
@@ -37,11 +49,22 @@ protected:
 
 	std::optional<graph::Router<double>::RouteInfo> RouteBuild(std::string_view from, std::string_view to);
 
+	//void FillOptRouter(const transport_catalogue_proto::CataloguePackage& db);
+
+	void FillGraph(const transport_catalogue_proto::CataloguePackage& db);
+
+
 private:
 	void AddEdge(const transport_catalogue::Stops* stop_from, const transport_catalogue::Stops* stop_to, double leng,
 		std::string_view bus_name, int span);
 
 	void CreateGraph();
+
+	void PackGraphPBEdges(proto_grapth::DirectedWeightedGraph* p_graph);
+	void TransportRouter::PackGraphPBIncidenceLists(proto_grapth::DirectedWeightedGraph* p_graph);
+
+	std::vector<graph::Edge<double>> FillEdges(const proto_grapth::DirectedWeightedGraph& graph);
+	std::vector<std::vector<size_t>> IncidenceList(const proto_grapth::DirectedWeightedGraph& graph);
 };
 
 class TransportRouterJSON : public TransportRouter {

@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package proto_svg;
+
+message Rgb {
+    uint32 red = 1;
+    uint32 green = 2;
+    uint32 blue = 3;
+}
+
+message Rgba{
+    uint32 red = 1;
+    uint32 green = 2;
+    uint32 blue = 3;
+    double opacity = 4;
+}
+
+message Color{
+    oneof color{
+        //color.color_case();
+        bool monostate = 1;
+        string str = 2;
+        Rgb rgb = 3;
+        Rgba rgba = 4;
+    }
+}

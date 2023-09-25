@@ -250,8 +250,87 @@ const json::Node TrasportCatalogue::GetJsonBusRes(std::string_view bus_name, int
 	}
 }
 
+TrasportCatalogue::TrasportCatalogue(const transport_catalogue_proto::TransportProto& db) {
+	const auto& pb_stops = db.stops();
+	const auto& pb_buses = db.buses();
+	const auto& pb_distances = db.distance();
+
+	std::unordered_map<size_t, std::string_view> assigned_id;
+
+	for (const transport_catalogue_proto::Stops& stop : pb_stops) {
+		AddStop(stop.stop_name(), geo::Coordinates{stop.coordinates().lat(), stop.coordinates().lon()});
+		assigned_id[stop.id()] = stop.stop_name();
+		//if (last_id < stop.id()) { last_id = stop.id(); }
+	}
+
+	for (const transport_catalogue_proto::StopsDistance& dist : pb_distances ) {
+		AddLenghtBetweenStops(assigned_id.at(dist.from()), assigned_id.at(dist.to()), dist.distance());
+	}
+
+	for (const transport_catalogue_proto::Buses& bus: pb_buses) {
+		std::vector<std::string_view> stops;
+		const transport_catalogue_proto::RouteInfo route = bus.route();
+
+		for (size_t id : route.the_route()) {
+			stops.push_back(assigned_id.at(id));
+		}
+
+		AddBus(bus.bus_name(), stops, route.ring());
+	}
+}
+
 size_t TrasportCatalogue::GetLastStopId() const {
 	return last_id;
+}
+
+void TrasportCatalogue::PackPBStop(transport_catalogue_proto::TransportProto* db) {
+	for (const Stops& stop : stop_storage_) {
+		transport_catalogue_proto::Stops& s = *db->add_stops();
+		s.set_id(stop.GetId());
+		s.set_stop_name(std::string(stop.GetName()));
+		transport_catalogue_proto::Coordinates& c = *s.mutable_coordinates();
+		const geo::Coordinates& cord = stop.GetCoordinate();
+		c.set_lat(cord.lat);
+		c.set_lon(cord.lng);
+	}
+}
+
+void TrasportCatalogue::PackPBBus(transport_catalogue_proto::TransportProto* db) {
+	for (const auto& [s_pair, leng] : true_lenght_) {
+		transport_catalogue_proto::StopsDistance& d = *db->add_distance();
+		d.set_from(s_pair.first->GetId());
+		d.set_to(s_pair.second->GetId());
+		d.set_distance(leng);
+	}
+}
+
+void TrasportCatalogue::PackPBDistance(transport_catalogue_proto::TransportProto* db) {
+	for (const Bus& bus : bus_storage_) {
+
+		transport_catalogue_proto::Buses& b = *db->add_buses();
+		b.set_bus_name(bus.bus_name_);
+
+		transport_catalogue_proto::RouteInfo& route = *b.mutable_route();
+
+		route.set_ring(bus.IsRing());
+
+		route.set_unique_stops(bus.route_.unique_stops_);
+
+		for (const Stops* s_ptr : bus.route_.the_route_) {
+			route.add_the_route(s_ptr->GetId());
+		}
+	}
+}
+
+void TrasportCatalogue::PackPB(transport_catalogue_proto::TransportProto* db) {
+	PackPBStop(db);
+	PackPBBus(db);
+	PackPBDistance(db);
+	db->set_last_id(last_id);
+}
+
+std::string_view TrasportCatalogue::GetBusStringView(std::string_view name) const {
+	return route_catalogue_.at(name)->GetName();
 }
 
 }//transport_catalogue

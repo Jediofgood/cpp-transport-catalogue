@@ -44,9 +44,15 @@ void AddStopsName(std::map<std::string_view, const transport_catalogue::Stops*>&
 	const RenderSettings& setting);
 
 svg::Document MapMaker(
-	const json::Dict& render_map,
+	//const json::Dict& render_map,
+	const RenderSettings settings,
 	const transport_catalogue::TrasportCatalogue* trc);
 
 json::Node MapToNode(const svg::Document& svg_map, const json::Node& NodeId);
+
+//protobuffStart here
+void FillProtoBuff(proto_render::RenderSettings* set, const json::Dict& render_map);
+
+RenderSettings FillSetFromProto(const proto_render::RenderSettings& pset);
 
 }//render

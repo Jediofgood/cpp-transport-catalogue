@@ -10,6 +10,10 @@
 #include "geo.h"
 #include "transport_catalogue.h"
 
+#include <svg.pb.h>
+#include <transport_catalogue.pb.h>
+#include <map_renderer.pb.h>
+
 namespace render {
 
 inline const double EPSILON = 1e-6;
@@ -284,7 +288,7 @@ void VisualizeBusName(const std::map<std::string_view, transport_catalogue::Bus*
     for (const auto [namebus, busptr] : bus_to_draw) {
         const std::vector<transport_catalogue::Stops*>& stops = busptr->GetRoute();
 
-        if (busptr->IsRing() or stops[0] == stops[stops.size() - 1]) {//круговой случий
+        if (busptr->IsRing() || stops[0] == stops[stops.size() - 1]) {//круговой случий
             VisualizeBusNameForRing(doc_res, spp, setting, busptr, i, size_color);
             /*
             svg::Text text1;
@@ -435,10 +439,11 @@ void AddStopsName(std::map<std::string_view, const transport_catalogue::Stops*>&
 
 //std::vector<std::unique_ptr<svg::Drawable>> MapMaker(
 svg::Document MapMaker(
-    const json::Dict& render_map,  //как её сделать
+    RenderSettings setting,  //как её сделать
+    //const json::Dict& render_map,  //как её сделать
     const transport_catalogue::TrasportCatalogue* trc) {
 
-    RenderSettings setting = FillSettings(render_map);
+    //RenderSettings setting = FillSettings(render_map);
     std::vector<std::unique_ptr<svg::Object>> bus_route;
 
     svg::Document doc_res;
@@ -481,6 +486,144 @@ json::Node MapToNode(const svg::Document& svg_map, const json::Node& NodeId) {
     svg_map.Render(output);
     result["map"] = output.str();
     return json::Node{ result };
+}
+
+void FillProtoBuff(proto_render::RenderSettings* set, const json::Dict& render_map) {
+    RenderSettings render_settings;
+    
+    set->set_width(render_map.at("width").AsDouble());
+    set->set_height(render_map.at("height").AsDouble());
+    set->set_padding(render_map.at("padding").AsDouble());
+    set->set_line_width(render_map.at("line_width").AsDouble());
+    set->set_stop_radius(render_map.at("stop_radius").AsDouble());
+    set->set_bus_label_font_size(render_map.at("bus_label_font_size").AsInt());
+    set->set_underlayer_width(render_map.at("underlayer_width").AsDouble());
+    {
+        proto_render::Point& point = *(set->mutable_bus_label_offset());
+        const json::Array& bus_label_offset = render_map.at("bus_label_offset").AsArray();
+        point.set_x(bus_label_offset[0].AsDouble());
+        point.set_y(bus_label_offset[1].AsDouble());
+    }
+
+    set->set_stop_label_font_size(render_map.at("stop_label_font_size").AsInt());
+
+    {
+        proto_render::Point& point = *(set->mutable_stop_label_offset());
+        const json::Array& stop_label_offset = render_map.at("stop_label_offset").AsArray();
+        point.set_x(stop_label_offset[0].AsDouble());
+        point.set_y(stop_label_offset[1].AsDouble());
+    }
+    set->set_underlayer_width(render_map.at("underlayer_width").AsDouble());
+
+    proto_svg::Color& pb_underlayer_color = *set->mutable_underlayer_color();
+    if (render_map.at("underlayer_color").IsString()) {
+        pb_underlayer_color.set_str(render_map.at("underlayer_color").AsString());
+    }
+    else {
+        const json::Array& underlayer_color = render_map.at("underlayer_color").AsArray();
+        if (underlayer_color.size() == 3) {
+            proto_svg::Rgb& rgb = *pb_underlayer_color.mutable_rgb();
+            rgb.set_red(underlayer_color[0].AsInt());
+            rgb.set_green(underlayer_color[1].AsInt());
+            rgb.set_blue(underlayer_color[2].AsInt());
+        }
+        else if(underlayer_color.size() == 4) {
+            proto_svg::Rgba& rgba = *pb_underlayer_color.mutable_rgba();
+            rgba.set_red(underlayer_color[0].AsInt());
+            rgba.set_green(underlayer_color[1].AsInt());
+            rgba.set_blue(underlayer_color[2].AsInt());
+            rgba.set_opacity(underlayer_color[3].AsDouble());
+        }
+        else {
+            pb_underlayer_color.set_monostate(true);
+        }
+    }
+
+    for (const json::Node& color_pallete_arr : render_map.at("color_palette").AsArray())
+    {
+        proto_svg::Color& color = *set->add_color_palette();
+
+        if (color_pallete_arr.IsString()) {
+            color.set_str(color_pallete_arr.AsString());
+        }
+        else {
+            const json::Array& color_pallete = color_pallete_arr.AsArray();
+            if (color_pallete.size() == 3) {
+                proto_svg::Rgb& rgb = *color.mutable_rgb();
+                rgb.set_red(color_pallete[0].AsInt());
+                rgb.set_green(color_pallete[1].AsInt());
+                rgb.set_blue(color_pallete[2].AsInt());
+            }
+            else if (color_pallete.size() == 4) {
+                proto_svg::Rgba& rgba = *color.mutable_rgba();
+                rgba.set_red(color_pallete[0].AsInt());
+                rgba.set_green(color_pallete[1].AsInt());
+                rgba.set_blue(color_pallete[2].AsInt());
+                rgba.set_opacity(color_pallete[3].AsDouble());
+            }
+            else {
+                color.set_monostate(false);
+            }
+        }
+    }
+}
+
+RenderSettings FillSetFromProto(const proto_render::RenderSettings& pset) {
+    RenderSettings render_settings;
+    render_settings.width = pset.width();
+    render_settings.height = pset.height();
+    render_settings.padding = pset.padding();
+    render_settings.line_width = pset.line_width();
+    render_settings.stop_radius = pset.stop_radius();
+    render_settings.bus_label_font_size = pset.bus_label_font_size();
+    render_settings.bus_label_offset 
+        = { pset.bus_label_offset().x(),pset.bus_label_offset().y() };
+    render_settings.stop_label_font_size = pset.stop_label_font_size();
+    render_settings.stop_label_offset 
+        = { pset.stop_label_offset().x(), pset.stop_label_offset().y()};
+
+    render_settings.underlayer_width = pset.underlayer_width();
+
+    const proto_svg::Color& pb_underlayer_color = pset.underlayer_color();
+
+    if (pb_underlayer_color.color_case() == 2) {
+        render_settings.underlayer_color = pb_underlayer_color.str();
+    }
+    else {
+        if (pb_underlayer_color.color_case() == 3) {
+            const proto_svg::Rgb& rgb = pb_underlayer_color.rgb();
+            render_settings.underlayer_color = 
+                svg::Rgb(rgb.red(), rgb.green(), rgb.blue());
+        }
+        else if (pb_underlayer_color.color_case() == 4) {
+            const proto_svg::Rgba& rgba = pb_underlayer_color.rgba();
+            render_settings.underlayer_color = svg::Rgba(rgba.red(), rgba.green(), rgba.blue(), rgba.opacity());
+        }
+    }
+
+    for (const proto_svg::Color& color_pallete : pset.color_palette())
+    {
+        if (color_pallete.color_case() == 2) {
+            render_settings.color_palette.push_back(color_pallete.str());
+        }
+        else {
+            if (color_pallete.color_case() == 3) {
+
+                const proto_svg::Rgb& rgb = color_pallete.rgb();
+
+                render_settings.color_palette
+                    .push_back(svg::Rgb(rgb.red(), rgb.green(), rgb.blue()));
+
+            }
+            else if (color_pallete.color_case() == 4) {
+                const proto_svg::Rgba& rgba = color_pallete.rgba();
+                render_settings.color_palette
+                    .push_back(svg::Rgba(rgba.red(), rgba.green(), rgba.blue(), rgba.opacity()));
+            }
+        }
+    }
+
+    return render_settings;
 }
 
 }//render
