@@ -37,8 +37,6 @@ message DirectedWeightedGraph{
     repeated IncidenceList incidence_lists = 2;
 }
 
-/*
-
 message RouteInfo {
     Weight weight = 1;
     repeated EdgeId edges = 2;
@@ -59,12 +57,10 @@ message OptionalRouteInternalData{
     }
 }
 
-message RoutesInternalData{
-    repeated OptionalRouteInternalData vect = 1;
+message VectorInternalData{
+    repeated OptionalRouteInternalData opt_data = 1;
 }
-
 
 message Router{
-    repeated RoutesInternalData routes_internal_data = 2;
+    repeated VectorInternalData routes_internal_data = 1;
 }
-*/

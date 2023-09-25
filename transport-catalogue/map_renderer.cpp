@@ -441,7 +441,7 @@ void AddStopsName(std::map<std::string_view, const transport_catalogue::Stops*>&
 svg::Document MapMaker(
     RenderSettings setting,  //как её сделать
     //const json::Dict& render_map,  //как её сделать
-    const transport_catalogue::TrasportCatalogue* trc) {
+    const transport_catalogue::TransportCatalogue* trc) {
 
     //RenderSettings setting = FillSettings(render_map);
     std::vector<std::unique_ptr<svg::Object>> bus_route;

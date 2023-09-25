@@ -20,7 +20,8 @@
 
 namespace transport_catalogue {
 
-	class TrasportCatalogue;
+	class TransportCatalogue;
+	class TransportCatalogueProtoBuff;
 
 	struct DistanceTo {
 		std::string_view name_;
@@ -78,7 +79,8 @@ namespace transport_catalogue {
 	//Класс маршрутов.
 	class Bus {
 
-		friend transport_catalogue::TrasportCatalogue;
+		friend transport_catalogue::TransportCatalogue;
+		friend transport_catalogue::TransportCatalogueProtoBuff;
 
 	public:
 		explicit Bus()
@@ -111,14 +113,10 @@ namespace transport_catalogue {
 		const size_t simple_num_ = 23;
 	};
 
-	class TrasportCatalogue {
+	class TransportCatalogue {
 	public:
-		explicit TrasportCatalogue()
+		explicit TransportCatalogue()
 		{}
-
-		explicit TrasportCatalogue(const transport_catalogue_proto::TransportProto& db);//proto
-
-		void PackPB(transport_catalogue_proto::TransportProto* db);
 
 		void AddStop(std::string_view name, geo::Coordinates coordinates);
 
@@ -148,7 +146,8 @@ namespace transport_catalogue {
 
 		size_t GetLastStopId() const;
 
-	private:
+	//private:
+	protected:
 		std::deque<Stops> stop_storage_;
 		std::unordered_map<std::string_view, Stops*> stops_catalogue_;
 		std::unordered_map<std::pair<Stops*, Stops*>, double, Hashing> true_lenght_;
@@ -162,10 +161,6 @@ namespace transport_catalogue {
 		double CalculateLenght(Bus& bus) const;
 
 		double CalculateStraightLenght(Bus& bus) const;
-	private:
-		void PackPBStop(transport_catalogue_proto::TransportProto* db);
-		void PackPBBus(transport_catalogue_proto::TransportProto* db);
-		void PackPBDistance(transport_catalogue_proto::TransportProto* db);
 	};
 
 }//transport_catalogue

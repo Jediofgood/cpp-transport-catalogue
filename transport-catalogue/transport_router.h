@@ -21,26 +21,17 @@ BusTimeInfo StartRouter(const json::Node& node);
 
 class TransportRouter {
 public:
-	TransportRouter(BusTimeInfo info, transport_catalogue::TrasportCatalogue*);
-
-	TransportRouter(const transport_catalogue_proto::CataloguePackage& db,
-		transport_catalogue::TrasportCatalogue* trc);
+	TransportRouter(BusTimeInfo info, transport_catalogue::TransportCatalogue*);
 
 	void Initialization();
-	void ProtoInitialization();
-
-	void PackGraphPB(proto_grapth::DirectedWeightedGraph* p_graph);
-
-	//void PackageRoutePB(proto_grapth::Router* router);
-
-	void PackPB(transport_catalogue_proto::CataloguePackage& db);
+	void Initialization_NoGrarh();
 
 protected:
 	static const int min_int_hour = 60;
 
 	int bus_wait_time_ = 0;
 	double bus_velocity_ = 0.;
-	transport_catalogue::TrasportCatalogue* trc_;
+	transport_catalogue::TransportCatalogue* trc_;
 
 	graph::DirectedWeightedGraph<double> graph_;
 	std::optional<graph::Router<double>> opt_router_;
@@ -49,22 +40,14 @@ protected:
 
 	std::optional<graph::Router<double>::RouteInfo> RouteBuild(std::string_view from, std::string_view to);
 
-	//void FillOptRouter(const transport_catalogue_proto::CataloguePackage& db);
 
-	void FillGraph(const transport_catalogue_proto::CataloguePackage& db);
-
-
-private:
+//private:
+protected:
 	void AddEdge(const transport_catalogue::Stops* stop_from, const transport_catalogue::Stops* stop_to, double leng,
 		std::string_view bus_name, int span);
 
 	void CreateGraph();
 
-	void PackGraphPBEdges(proto_grapth::DirectedWeightedGraph* p_graph);
-	void TransportRouter::PackGraphPBIncidenceLists(proto_grapth::DirectedWeightedGraph* p_graph);
-
-	std::vector<graph::Edge<double>> FillEdges(const proto_grapth::DirectedWeightedGraph& graph);
-	std::vector<std::vector<size_t>> IncidenceList(const proto_grapth::DirectedWeightedGraph& graph);
 };
 
 class TransportRouterJSON : public TransportRouter {

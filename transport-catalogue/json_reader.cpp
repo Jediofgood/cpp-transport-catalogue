@@ -11,7 +11,7 @@
 namespace jsonreader {
 	
 void LoadJson(std::istream& is, 
-		transport_catalogue::TrasportCatalogue* trc, 
+		transport_catalogue::TransportCatalogue* trc, 
 		json::Array* req_array, 
 		json::Dict* render_map)
 {
@@ -26,7 +26,7 @@ void LoadJson(std::istream& is,
 }
 
 void LoadJson(std::istream& is,
-		transport_catalogue::TrasportCatalogue* trc,
+		transport_catalogue::TransportCatalogue* trc,
 		json::Node& tr_set,
 		json::Array* req_array,
 		json::Dict* render_map
@@ -43,7 +43,7 @@ void LoadJson(std::istream& is,
 	LoadFromJsonDB(base_array, trc);
 }
 
-void LoadFromJsonDB(const json::Array& base_array, transport_catalogue::TrasportCatalogue* trc) {
+void LoadFromJsonDB(const json::Array& base_array, transport_catalogue::TransportCatalogue* trc) {
 	using namespace json;
 	//Вектор остановок и автобусов
 
@@ -66,7 +66,7 @@ void LoadFromJsonDB(const json::Array& base_array, transport_catalogue::Trasport
 	LoadBusesJSON(buses, trc);
 }
 
-void LoadPrimaryBusInfo(const json::Node* bus_node, transport_catalogue::TrasportCatalogue* trc) {
+void LoadPrimaryBusInfo(const json::Node* bus_node, transport_catalogue::TransportCatalogue* trc) {
 	const json::Dict& bus_map = bus_node->AsMap();
 	std::vector<std::string_view> stops;
 	for (const json::Node& stops_node : bus_map.at("stops").AsArray()) {
@@ -79,18 +79,18 @@ void LoadPrimaryBusInfo(const json::Node* bus_node, transport_catalogue::Traspor
 	);
 }
 
-void LoadBusesJSON(const std::vector<const json::Node*>& buses, transport_catalogue::TrasportCatalogue* trc) {
+void LoadBusesJSON(const std::vector<const json::Node*>& buses, transport_catalogue::TransportCatalogue* trc) {
 	for (const json::Node* bus : buses) {
 		LoadPrimaryBusInfo(bus, trc);
 	}
 }
 
-void LoadPrimaryStopInfo(const json::Node* stop_node, transport_catalogue::TrasportCatalogue* trc) {
+void LoadPrimaryStopInfo(const json::Node* stop_node, transport_catalogue::TransportCatalogue* trc) {
 	json::Dict stop = stop_node->AsMap();
 	trc->AddStop(stop.at("name").AsString(), geo::Coordinates{ stop.at("latitude").AsDouble(), stop.at("longitude").AsDouble() });
 }
 
-void LoadStopsJson(const std::vector<const json::Node*>& stops, transport_catalogue::TrasportCatalogue* trc) {
+void LoadStopsJson(const std::vector<const json::Node*>& stops, transport_catalogue::TransportCatalogue* trc) {
 
 	std::unordered_map<std::string_view, const json::Node*> stops_leng;
 	for (const json::Node* stop : stops) {

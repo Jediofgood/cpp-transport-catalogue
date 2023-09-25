@@ -14,6 +14,10 @@
 
 namespace graph {
 
+enum class Mode {
+        ProtoBuff,
+};
+
 template <typename Weight>
 class Router {
 private:
@@ -21,6 +25,7 @@ private:
 
 public:
     explicit Router(const Graph& graph);
+
 
     /*
     Router(const Graph& graph,
@@ -82,13 +87,15 @@ public:
         }
     }
 
+protected:
     static constexpr Weight ZERO_WEIGHT{};
     const Graph& graph_;
     RoutesInternalData routes_internal_data_;
 
 public:
-    const RoutesInternalData& GetRoutesInternalData() const;
+    const RoutesInternalData GetRoutesInternalData() const;
 };
+
 
 template <typename Weight>
 Router<Weight>::Router(const Graph& graph)
@@ -129,15 +136,15 @@ std::optional<typename Router<Weight>::RouteInfo> Router<Weight>::BuildRoute(Ver
 }
 
 template <typename Weight>
-const std::vector<std::vector<std::optional<typename Router<Weight>::RouteInternalData>>>& Router<Weight>::GetRoutesInternalData() const {
+const std::vector<std::vector<std::optional<typename Router<Weight>::RouteInternalData>>> Router<Weight>::GetRoutesInternalData() const {
     return routes_internal_data_;
 }
 
-//template <typename Weight>
-//Router<Weight>::Router(const Graph& graph,
-//    std::vector<std::vector<std::optional<Router<Weight>::RouteInternalData>>> routes_internal_data
-//){
-
-//}
+/*
+template <typename Weight>
+Router<Weight>::Router(std::vector<std::vector<std::optional<Router<double>::RouteInternalData>>> vec) {
+    routes_internal_data_ = vec;
+}
+*/
 
 }  // namespace graph

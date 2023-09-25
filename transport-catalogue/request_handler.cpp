@@ -10,12 +10,12 @@
 namespace jsonhandler {
 
 
-json::Node BusTypeRequest(const json::Node* bus_req, transport_catalogue::TrasportCatalogue* trc){
+json::Node BusTypeRequest(const json::Node* bus_req, transport_catalogue::TransportCatalogue* trc){
 	using namespace std::string_literals;
 	return trc->GetJsonBusRes(bus_req->AsMap().at("name"s).AsString(), bus_req->AsMap().at("id"s).AsInt());
 }
 
-json::Node StopTypeRequest(const json::Node* stop_req, transport_catalogue::TrasportCatalogue* trc) {
+json::Node StopTypeRequest(const json::Node* stop_req, transport_catalogue::TransportCatalogue* trc) {
 	using namespace std::string_literals;
 	return trc->GetJsonStopRes(stop_req->AsMap().at("name"s).AsString(), stop_req->AsMap().at("id"s).AsInt());
 }
@@ -31,7 +31,7 @@ json::Node SVGMapToNode(const svg::Document& svg_map, const json::Node& NodeId) 
 }
 
 json::Node RequestProcceing(const json::Array& req_array, 
-		transport_catalogue::TrasportCatalogue* trc,
+		transport_catalogue::TransportCatalogue* trc,
 		const json::Dict& render_map,
 		transport_router::TransportRouterJSON* tr){
 	using namespace std::string_view_literals;
@@ -63,7 +63,7 @@ json::Node RequestProcceing(const json::Array& req_array,
 //ProtoBuff Start's here
 
 json::Node ProtoRequestProcceing(const json::Array& req_array,
-	transport_catalogue::TrasportCatalogue* trc,
+	transport_catalogue::TransportCatalogue* trc,
 	const proto_render::RenderSettings& rendersettings,
 	transport_router::TransportRouterJSON* tr
 	) {
