@@ -57,7 +57,6 @@ public:
 
 	void PackGraphPB(proto_grapth::DirectedWeightedGraph* p_graph);
 	
-	//void PackRouterPB(proto_router::TransportRouter* tr_router);
 
 	void PackPB(transport_catalogue_proto::CataloguePackage& db);
 
@@ -67,8 +66,6 @@ public:
 private:
 	void PackGraphPBEdges(proto_grapth::DirectedWeightedGraph* p_graph);
 	void PackGraphPBIncidenceLists(proto_grapth::DirectedWeightedGraph* p_graph);
-
-	//void UnpackRouterPB(const transport_catalogue_proto::CataloguePackage& db);
 };
 
 

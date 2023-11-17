@@ -15,7 +15,7 @@ void PrintUsage(std::ostream& stream = std::cerr) {
 	stream << "Usage: transport_catalogue [make_base|process_requests]\n"sv;
 }
 
-int main23(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 	if (argc != 2) {
 		PrintUsage();
 		return 1;
@@ -37,14 +37,4 @@ int main23(int argc, char* argv[]) {
 		PrintUsage();
 		return 1;
 	}
-}
-
-void main() {
-	using namespace std;
-	ifstream input1("1input.json");
-	ifstream input2("2input.json");
-	ofstream output("output.json");
-
-	MakeBase(input1);
-	ProcessRequests(input2, output);
 }

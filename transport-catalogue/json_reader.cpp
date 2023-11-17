@@ -95,7 +95,6 @@ void LoadStopsJson(const std::vector<const json::Node*>& stops, transport_catalo
 	std::unordered_map<std::string_view, const json::Node*> stops_leng;
 	for (const json::Node* stop : stops) {
 		LoadPrimaryStopInfo(stop, trc);
-		//stops_leng.emplace(stop->AsMap().at("name").AsString(), stop->AsMap().at("road_distances"));
 		stops_leng[stop->AsMap().at("name").AsString()] = &(stop->AsMap().at("road_distances"));
 	}
 
@@ -105,8 +104,6 @@ void LoadStopsJson(const std::vector<const json::Node*>& stops, transport_catalo
 		}
 	}
 }
-
-//protobuff start here
 
 void MakeBaseJson(std::istream& is,
 		json::Array* base_array,
@@ -133,9 +130,6 @@ void SortBaseRequest(const json::Array& base_array, RequestVectors* vecs) {
 	using namespace json;
 	//Вектор остановок и автобусов
 
-	//std::vector<const Node*> stops;
-	//std::vector<const Node*> buses;
-
 	for (const Node& node : base_array) {
 		if (node.AsMap().at("type").AsString() == "Stop") {
 			vecs->stops.push_back(&node);
@@ -149,7 +143,6 @@ void SortBaseRequest(const json::Array& base_array, RequestVectors* vecs) {
 	}
 }
 
-//std::unordered_map<std::string_view, size_t> LoadProtoStopsJson(const std::vector<const json::Node*>& stops, transport_catalogue_proto::TransportProto* database) {
 void LoadProtoStopsJson(const std::vector<const json::Node*>& stops,
 	transport_catalogue_proto::TransportProto* database,
 	std::unordered_map<std::string_view, size_t>* ptr_assigned_id
@@ -164,7 +157,6 @@ void LoadProtoStopsJson(const std::vector<const json::Node*>& stops,
 
 	for (const json::Node* stop_node : stops) {
 
-		//void/transport_catalogue_proto::Stops* SetPBStops (const json::Node* stop_node, size_t id /*, transport_catalogue_proto::TransportProto* database*/) {
 		transport_catalogue_proto::Stops* pb_stop = database->add_stops();
 
 		const json::Dict& stop_dict = stop_node->AsMap();
@@ -197,13 +189,13 @@ void LoadProtoBusesJSON(const std::vector<const json::Node*>& buses,
 	const std::unordered_map<std::string_view, size_t>& assigned_id) {
 
 	for (const json::Node* bus_node : buses) {
-		//void/
+
 		transport_catalogue_proto::Buses* pb_bus = database->add_buses();
 		transport_catalogue_proto::RouteInfo* pb_route = pb_bus->mutable_route();
 
 		const json::Dict& bus_map = bus_node->AsMap();
 		std::vector<std::string_view> stops;
-		//std::set<size_t> uniq_stops_set_id;
+
 
 		pb_bus->set_bus_name(bus_map.at("name").AsString());
 		pb_route->set_ring(bus_map.at("is_roundtrip").AsBool());
@@ -212,14 +204,12 @@ void LoadProtoBusesJSON(const std::vector<const json::Node*>& buses,
 		for (const json::Node& stops_node : bus_map.at("stops").AsArray()) {
 			size_t id = assigned_id.at(stops_node.AsString());
 			pb_route->add_the_route(id);
-			//uniq_stops_set_id.insert(id);
+
 		}
-		//pb_route->set_unique_stops(uniq_stops_set_id.size());
+
 	}
 
 }
-
-//Req_read
 
 void LoadRequestJsonPB(std::istream& is,
 	json::Dict* serial_settings,
@@ -237,4 +227,3 @@ void LoadRequestJsonPB(std::istream& is,
 
 }//jsonreader
 
-//SVG MapRender	Star here

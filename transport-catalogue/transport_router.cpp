@@ -149,39 +149,6 @@ json::Node TransportRouterJSON::FillAnswer(int id, const graph::Router<double>::
 	return json::Builder{}.StartDict().Key("request_id"s).Value(id).Key("total_time"s).Value(weight).Key("items").Value(route).EndDict().Build();
 }
 
-/*
-void TransportRouter::FillOptRouter(const transport_catalogue_proto::CataloguePackage& db) {
-	FillGraph(db);
-
-	//std::vector<std::vector<std::optional<graph::Router<double>::RouteInternalData>>> routes_internal_data;
-
-	//const proto_grapth::Router& p_route = db.router().route();
-
-	//std::vector<std::vector<std::optional<graph::Router<double>::RouteInternalData>>> routes_internal_data(p_route.routes_internal_data_size());
-
-	//for (const proto_grapth::RoutesInternalData& vec1 : p_route.routes_internal_data()) {
-		//std::vector<std::optional<graph::Router<double>::RouteInternalData>> route_internal_data(vec1.vect_size());
-
-		//for (const proto_grapth::OptionalRouteInternalData& p_opt : vec1.vect()) {
-			//if (p_opt.has_value()) {
-				//const proto_grapth::RouteInternalData& p_data = p_opt.value();
-
-				//graph::Router<double>::RouteInternalData data;
-				//data.weight = p_data.weight().weight();
-				//if (p_data.has_prev_edge()) {
-				//	data.prev_edge = std::make_optional<size_t>(p_data.prev_edge().id());
-				//}
-
-				//route_internal_data.push_back(data);
-			//}
-		//}
-	//}
-
-	//graph::Router<double> rout{ graph_, routes_internal_data };
-
-}
-*/
-
 void TransportRouter::Initialization_NoGrarh() {
 	opt_router_.emplace(graph::Router<double>{graph_});
 }

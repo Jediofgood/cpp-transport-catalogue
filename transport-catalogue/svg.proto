@@ -17,7 +17,6 @@ message Rgba{
 
 message Color{
     oneof color{
-        //color.color_case();
         bool monostate = 1;
         string str = 2;
         Rgb rgb = 3;

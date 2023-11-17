@@ -37,7 +37,7 @@ public:
 	public:
 		Context(Builder* builder);
 
-		Context Value(Node node); //???
+		Context Value(Node node);
 
 		Node Build();
 		DictValue Key(std::string);
@@ -49,7 +49,6 @@ public:
 		Node* AddNewObj();
 	protected:
 		void ValueWorker(Node node);
-	//private:
 		Builder* builder_;
 	};
 
@@ -83,7 +82,7 @@ public:
 	public:
 		ArrayValue(Builder* builder);
 
-		ArrayValue Value(Node node); //???
+		ArrayValue Value(Node node);
 
 		Node Build() = delete;
 		DictValue Key(std::string) = delete;

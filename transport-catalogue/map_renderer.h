@@ -44,7 +44,6 @@ void AddStopsName(std::map<std::string_view, const transport_catalogue::Stops*>&
 	const RenderSettings& setting);
 
 svg::Document MapMaker(
-	//const json::Dict& render_map,
 	const RenderSettings settings,
 	const transport_catalogue::TransportCatalogue* trc);
 

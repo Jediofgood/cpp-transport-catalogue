@@ -37,11 +37,8 @@ size_t Hashing::operator()(std::pair<Stops*, Stops* >stop_pair) const {
 }
 
 void TransportCatalogue::AddStop(std::string_view name, geo::Coordinates coordinates) {
-	//stop_storage_.push_front(std::move(Stops{ name, coordinates, last_id++ }));
 	stop_storage_.push_back(std::move(Stops{ name, coordinates, last_id++ }));
-	//stops_catalogue_.emplace(stop_storage_[0].GetName(), &stop_storage_[0]);
 	stops_catalogue_.emplace(stop_storage_.back().GetName(), &stop_storage_.back());
-	//buses_on_stop_[stop_storage_[0].GetName()];
 	buses_on_stop_[stop_storage_.back().GetName()];
 }
 
@@ -94,8 +91,7 @@ Stops* TransportCatalogue::GetStopPTR(std::string_view name) {
 double TransportCatalogue::CalculateLenght(Bus& bus) const{
 	const std::vector<Stops*>& stops = bus.GetRoute();
 	bool isfirst = true;
-	//Stops* first_s = stops[0];
-	Stops* first_s = nullptr; //против C4703 VS
+	Stops* first_s = nullptr; / against C4703 VS
 	Stops* second_s;
 	double leng = 0;
 	for (Stops* stop : stops) {
@@ -122,8 +118,7 @@ double TransportCatalogue::CalculateLenght(Bus& bus) const{
 double TransportCatalogue::CalculateStraightLenght(Bus& bus) const {
 	const std::vector<Stops*>& stops = bus.GetRoute();
 	bool isfirst = true;
-	//Stops* first_s = stops[0];
-	Stops* first_s = nullptr; //против C4703 VS
+	Stops* first_s = nullptr; //against C4703 VS
 	Stops* second_s;
 	double leng = 0;
 	for (Stops* stop : stops) {

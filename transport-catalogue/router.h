@@ -25,13 +25,6 @@ private:
 
 public:
     explicit Router(const Graph& graph);
-
-
-    /*
-    Router(const Graph& graph,
-       std::vector<std::vector<std::optional<Router<Weight>::RouteInternalData>>> routes_internal_data
-        );
-    */
     struct RouteInfo {
         Weight weight;
         std::vector<EdgeId> edges;
@@ -139,12 +132,5 @@ template <typename Weight>
 const std::vector<std::vector<std::optional<typename Router<Weight>::RouteInternalData>>> Router<Weight>::GetRoutesInternalData() const {
     return routes_internal_data_;
 }
-
-/*
-template <typename Weight>
-Router<Weight>::Router(std::vector<std::vector<std::optional<Router<double>::RouteInternalData>>> vec) {
-    routes_internal_data_ = vec;
-}
-*/
 
 }  // namespace graph

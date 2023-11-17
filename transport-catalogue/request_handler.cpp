@@ -2,7 +2,6 @@
 
 #include "map_renderer.h"
 
-//#include <execution>
 #include <string>
 #include <sstream>
 #include "json_builder.h"

@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package proto_grapth;
 
-//В случае изменения шаблона <weight> с double на что-то, можно будет поменять только этот message
 message Weight{
     double weight = 1;
 }

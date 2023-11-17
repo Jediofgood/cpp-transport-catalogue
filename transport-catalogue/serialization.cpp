@@ -259,7 +259,6 @@ std::vector<std::vector<size_t>> TransportRouterProtoBuff::IncidenceList(const p
 }
 
 void TransportRouterProtoBuff::UnpackGraph(const transport_catalogue_proto::CataloguePackage& db) {
-	//graph::DirectedWeightedGraph<double> result;
 
 	const proto_router::TransportRouter& tr = db.router();
 
@@ -271,81 +270,4 @@ void TransportRouterProtoBuff::UnpackGraph(const transport_catalogue_proto::Cata
 	graph_.SetEdges(std::move(FillEdges(graph)));
 	graph_.SetIncidenceList(std::move(IncidenceList(graph)));
 }
-
-/*
-void TransportRouterProtoBuff::PackRouterPB(proto_router::TransportRouter* tr_router) {
-	if (opt_router_.has_value()){
-		proto_grapth::Router p_router = *tr_router->mutable_route();
-
-		const graph::Router<double> router = opt_router_.value();
-		const std::vector<std::vector<std::optional<graph::Router<double>::RouteInternalData>>>& internal_data = router.GetRoutesInternalData();
-
-		for (const std::vector<std::optional<graph::Router<double>::RouteInternalData>>& vec_of_opt
-			: internal_data) {
-
-			proto_grapth::VectorInternalData& p_vec = *p_router.add_routes_internal_data();
-
-			for (const std::optional<graph::Router<double>::RouteInternalData>& opt_data : vec_of_opt) {
-				proto_grapth::OptionalRouteInternalData& p_opt_data = *p_vec.add_opt_data();
-				if (opt_data.has_value()) {
-					proto_grapth::RouteInternalData& data = *p_opt_data.mutable_value();
-
-					graph::Router<double>::RouteInternalData data_to_pack = opt_data.value();
-					(*data.mutable_weight()).set_weight(data_to_pack.weight);
-					if (data_to_pack.prev_edge.has_value()) {
-						data.mutable_prev_edge()->set_id(data_to_pack.prev_edge.value());
-					}
-					else {
-						data.set_is_value(false);
-					}
-				}
-				else {
-					p_opt_data.set_is_value(false);
-				}
-			}
-		}
-	}
-	else {
-		tr_router->set_is_value(false);
-	}
-}
-
-void TransportRouterProtoBuff::UnpackRouterPB(const transport_catalogue_proto::CataloguePackage& db) {
-	if (db.router().has_route()) {
-		const proto_grapth::Router& p_router = db.router().route();
-
-		std::vector<std::vector<std::optional<graph::Router<double>::RouteInternalData>>> internal_vector;
-		internal_vector.reserve(p_router.routes_internal_data_size());
-
-		for (const proto_grapth::VectorInternalData& p_vec : p_router.routes_internal_data()) {
-			std::vector<std::optional<graph::Router<double>::RouteInternalData>> last_vector;
-			last_vector.reserve(p_vec.opt_data_size());
-
-			for (const proto_grapth::OptionalRouteInternalData& p_opt_data : p_vec.opt_data()) {
-				if (p_opt_data.has_value()) {
-					const proto_grapth::RouteInternalData& data = p_opt_data.value();
-					graph::Router<double>::RouteInternalData data_unpack;
-
-					data_unpack.weight = data.weight().weight();
-
-					if (data.has_prev_edge()) {
-						data_unpack.prev_edge = std::make_optional<size_t>(data.prev_edge().id());
-					}
-					//else {}
-					last_vector.push_back(std::make_optional<graph::Router<double>::RouteInternalData>(data_unpack));
-				}
-				else {
-					last_vector.push_back({});
-				}
-				
-				
-			}
-			internal_vector.push_back(last_vector);
-		}
-		//graph::Router<double> router_to_put(internal_vector);
-	}
-	//else {}
-}
-
-*/
 }//transport_router
